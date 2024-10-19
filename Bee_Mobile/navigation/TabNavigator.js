@@ -1,13 +1,15 @@
 import React from "react";
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import HomeScreen from '../screens/HomeScreen';
-import BudgetScreen from '../screens/BudgetScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import TransactionScreen from '../screens/TransactionScreen';
+import TransactionStackScreen from './TransactionStack'
 import SavingGoalStackScreen from './SavingGoalStackScreen';
+import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 
+import BudgetScreen from "../screens/BudgetScreen";
+
+
+import Home from "../screens/HomeSreen/Home";
 const Tab = createBottomTabNavigator();
 
 function TabNavigator() {
@@ -46,11 +48,11 @@ function TabNavigator() {
         };
       }}
     >
-      <Tab.Screen name="Tổng quan" component={HomeScreen} />
+      <Tab.Screen name="Tổng quan" component={Home} />
       <Tab.Screen name="Mục tiêu" component={SavingGoalStackScreen} />
       <Tab.Screen
         name="Giao dịch"
-        component={TransactionScreen}
+        component={TransactionStackScreen}
         options={{
           tabBarLabel: () => null,
           tabBarIcon: ({ focused }) => (

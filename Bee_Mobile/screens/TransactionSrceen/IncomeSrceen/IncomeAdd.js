@@ -98,7 +98,7 @@ const IncomeAdd = () => {
       </TouchableOpacity>
 
       {showIncomeList && (
-        <TouchableOpacity onPress={() => navigation.navigate('IncomeList')} style={styles.listContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate('CategoryList')} style={styles.listContainer}>
           <Text style={styles.listText}>Sổ thu nhập</Text>
         </TouchableOpacity>
       )}

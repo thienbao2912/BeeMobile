@@ -1,163 +1,106 @@
-import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView } from "react-native";
+import Svg, { Ellipse } from "react-native-svg";
+import tw from "twrnc";
+import { fetchAllTransactions } from "../../../services/Transaction"; // Adjust the import based on your service structure
+import * as SecureStore from 'expo-secure-store'; // Import SecureStore
 
-export default function ExpenseList() {
-  const navigation = useNavigation();
+export default function ExpenseList({ navigation }) {
+  const [transactions, setTransactions] = useState([]); // Renamed to transactions to reflect both types
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null); // State to hold userId
 
-  const expenses = [
-    {
-      id: 1,
-      category: { id: 1, name: 'Ăn uống là cái gì có quan trọng không', image: require('../../../assets/images/diet.png')  },
-      description: 'Ăn trưa với bạn bè tôi không biết nữa nè vị sao hả, rồi sao nữa',
-      amount: 120000,
-      date: '08-10-2024',
-    },
-    {
-      id: 2,
-      category: { id: 2, name: 'Di chuyển', image: require('../../../assets/images/vehicle.png') },
-      description: 'Taxi về nhà',
-      amount: 50000,
-      date: '07-10-2024',
-    },
-    {
-      id: 3,
-      category: { id: 3, name: 'Uống', image: require('../../../assets/images/cocktail.png') },
-      description: 'Nước ép dâu',
-      amount: 300000,
-      date: '07-10-2024',
-    },
-  ];
+  useEffect(() => {
+    const loadUserId = async () => {
+      const id = await SecureStore.getItemAsync('userId'); // Get userId from SecureStore
+      setUserId(id);
+    };
 
-  const truncateText = (text, maxLength) => {
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    loadUserId();
+  }, []);
+
+  useEffect(() => {
+    const loadTransactions = async () => {
+      if (userId) {
+        try {
+          const data = await fetchAllTransactions(); // Fetching transactions from the service
+          console.log("Fetched transactions data:", data); // Log the data to check structure
+
+          // Filter transactions for the current user
+          const filteredTransactions = data.filter(transaction => transaction.userId === userId);
+          setTransactions(filteredTransactions);
+        } catch (error) {
+          console.error("Error loading transactions", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadTransactions();
+  }, [userId]); // Re-run when userId is set
+
+  const navigateToDetail = (transaction) => {
+    navigation.navigate('ExpenseDetail', { transaction }); // Navigate to detail screen
   };
 
-  const expensesByDate = expenses.reduce((groupedExpenses, expense) => {
-    const { date } = expense;
-    if (!groupedExpenses[date]) {
-      groupedExpenses[date] = [];
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  // Group transactions by date
+  const groupedTransactions = transactions.reduce((acc, transaction) => {
+    const date = new Date(transaction.date).toLocaleDateString(); // Format the date as needed
+    if (!acc[date]) {
+      acc[date] = [];
     }
-    groupedExpenses[date].push(expense);
-    return groupedExpenses;
+    acc[date].push(transaction);
+    return acc;
   }, {});
 
   return (
-    <View style={{ flex: 1, padding: 10 }}>
-      <ScrollView>
-        {Object.keys(expensesByDate).map((date) => (
+    <ScrollView style={tw`flex-1`} contentContainerStyle={tw`items-center p-2`}>
+      <View style={tw`w-full mt-2 pl-2 pr-2`}>
+        {Object.keys(groupedTransactions).map((date) => (
           <View key={date}>
-            <View style={styles.dateBadge}>
-              <Text style={styles.dateBadgeText}>{date}</Text>
+            <View style={tw`bg-indigo-200 p-1.5 rounded-200 mb-3 self-start`}>
+              <Text style={tw`text-white font-bold text-xs`}>{date}</Text>
             </View>
-
-            {expensesByDate[date].map((expense) => (
+            {groupedTransactions[date].map((transaction) => (
               <TouchableOpacity
-                key={expense.id}
+                key={transaction._id}
                 activeOpacity={0.7}
-                style={styles.expenseItem}
-                onPress={() => navigation.navigate('ExpenseDetail', { expense })}
+                style={tw`flex-row items-center bg-white rounded-lg p-2.5 mb-3 mx-1`}
+                onPress={() => navigateToDetail(transaction)}
               >
-                <View style={styles.iconWrapper}>
+                <View style={tw`p-1.5 mr-4 rounded-2 bg-indigo-50`}>
                   <Image
-                    source={expense.category.image}
-                    style={styles.icon}
+                    source={{ uri: transaction.categoryId?.image || '../../assets/images/rabbit.png' }} // Fallback to placeholder
+                    style={tw`w-10 h-10`}
                   />
                 </View>
-                <View style={styles.expenseDetails}>
-                  <Text style={styles.categoryName}>
-                    {truncateText(expense.category.name, 14)}
-                  </Text>
-                  <Text style={styles.description}>
-                    {truncateText(expense.description, 20)}
-                  </Text>
+                <View style={tw`flex-1`}>
+            <Text style={tw`text-lg font-bold mb-1`}>
+  {transaction.categoryId ? 
+    (transaction.categoryId.name.length > 20 ? transaction.categoryId.name.substring(0, 20) + '...' : transaction.categoryId.name)
+    : 'No category assigned'}
+</Text>
+<Text style={tw`text-base text-gray-600`}>
+  {transaction.description.length > 20 ? transaction.description.substring(0, 20) + '...' : transaction.description}
+</Text>
+
+              
                 </View>
-                <View style={styles.dateAmountWrapper}>
-                  <Text style={styles.amount}>- {expense.amount.toLocaleString('vi-VN')} đ</Text>
+                <View style={tw`items-end`}>
+                  <Text style={[tw`text-lg font-medium`, transaction.type === 'expense' ? tw`text-red-600` : tw`text-green-600`]}>
+                    {transaction.type === 'expense' ? '-' : '+'} {(typeof transaction.amount === 'number' ? Math.abs(transaction.amount) : 0).toLocaleString()}đ
+                  </Text>
                 </View>
               </TouchableOpacity>
             ))}
           </View>
         ))}
-      </ScrollView>
-
-      <TouchableOpacity 
-        style={styles.addButton} 
-        onPress={() => navigation.navigate('ExpenseAdd')}
-      >
-        <Text style={styles.addButtonText}>Thêm Chi Tiêu</Text>
-      </TouchableOpacity>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  dateBadge: {
-    backgroundColor: '#d3d8f8', 
-    padding: 5, 
-    borderRadius: 10,
-    marginHorizontal: 5,
-    marginVertical: 10,
-    alignSelf: 'flex-start',
-  },
-  dateBadgeText: {
-    color: '#fff', 
-    fontWeight: 'bold',
-    fontSize: 12, 
-  },
-  expenseItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-    marginHorizontal: 5,
-  },
-  iconWrapper: {
-    padding: 5,
-    marginRight: 15,
-    borderRadius: 11,
-    backgroundColor: '#F2F3FF',
-  },
-  icon: {
-    width: 40,
-    height: 40,
-  },
-  expenseDetails: {
-    flex: 1,
-  },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  description: {
-    fontSize: 14,
-    color: '#7f8c8d',
-  },
-  dateAmountWrapper: {
-    alignItems: 'flex-end',
-  },
-  amount: {
-    fontSize: 17,
-    fontWeight: '500',
-    color: '#e74c3c',
-  },
-  addButton: {
-    backgroundColor: '#5A5DD1', 
-    padding: 15,
-    borderRadius: 10,
-    margin: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
