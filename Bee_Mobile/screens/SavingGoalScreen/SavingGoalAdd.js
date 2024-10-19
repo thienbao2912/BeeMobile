@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Image, Alert } from 'react-native';
 import tw from 'twrnc';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addSavingGoal } from '../../services/SavingsGoalService/index';
+import { addSavingGoal } from '../../services/SavingsGoalService';
 import * as SecureStore from 'expo-secure-store';
 
-export default function AddGoal() {
+export default function AddGoal({ navigation }) {
   const [goalName, setGoalName] = useState('');
   const [goalAmount, setGoalAmount] = useState('');
   const [savedAmount, setSavedAmount] = useState('');
@@ -37,7 +37,7 @@ export default function AddGoal() {
   };
 
   const handleSaveGoal = async () => {
-    const userId = await SecureStore.getItemAsync('userId');  // Lấy userId từ SecureStore
+    const userId = await SecureStore.getItemAsync('userId');
 
     const newGoal = {
       name: goalName,
@@ -45,14 +45,16 @@ export default function AddGoal() {
       currentAmount: parseInt(savedAmount, 10),
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      categoryId: selectedCategory,  // Sử dụng categoryId thay vì category
-      userId: userId  // Thêm userId
+      categoryId: selectedCategory,
+      userId: userId,
     };
 
     try {
       const result = await addSavingGoal(newGoal);
       Alert.alert('Thành công', 'Mục tiêu tiết kiệm đã được lưu!', [{ text: 'OK' }]);
-      
+
+      navigation.navigate('SavingGoalList');
+
       setGoalName('');
       setGoalAmount('');
       setSavedAmount('');
@@ -62,9 +64,7 @@ export default function AddGoal() {
     } catch (error) {
       Alert.alert('Lỗi', error.message, [{ text: 'OK' }]);
     }
-};
-
-  
+  };
 
   return (
     <View style={tw`flex-1`}>

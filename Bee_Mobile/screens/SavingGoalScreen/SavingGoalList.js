@@ -11,30 +11,36 @@ export default function SavingGoalScreen({ navigation }) {
   const [savingGoals, setSavingGoals] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadSavingGoals = async () => {
-      try {
-        const userId = await SecureStore.getItemAsync('userId');
-        if (userId) {
-          const goals = await fetchAllSavingGoalsByUser(userId);
-          setSavingGoals(goals);
-        }
-      } catch (error) {
-        console.error("Error loading saving goals", error);
-      } finally {
-        setLoading(false);
+  const loadSavingGoals = async () => {
+    try {
+      const userId = await SecureStore.getItemAsync('userId');
+      if (userId) {
+        const goals = await fetchAllSavingGoalsByUser(userId);
+        setSavingGoals(goals);
       }
-    };
+    } catch (error) {
+      console.error("Error loading saving goals", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadSavingGoals();
-  }, []);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadSavingGoals();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const navigateToDetail = (goal) => {
     navigation.navigate('SavingGoalDetail', { goal });
   };
+
   const navigateToEdit = (goal) => {
     navigation.navigate('SavingGoalEdit', { goal });
   };
+
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
@@ -53,7 +59,6 @@ export default function SavingGoalScreen({ navigation }) {
             fill="none"
           />
         </Svg>
-
         <Text style={tw`absolute top-13 text-base text-center`}>bạn cần tiết kiệm</Text>
         <Text style={tw`absolute top-18 text-base`}>3,000,000 đ</Text>
       </View>
@@ -100,12 +105,6 @@ export default function SavingGoalScreen({ navigation }) {
           } else if (progress === 0) {
             statusText = "Chưa tiết kiệm";
             statusColor = "red";
-          } else if (progress >= 0.8) {
-            statusText = `Còn lại ${100 - progressPercentage}%`;
-            statusColor = "green";
-          } else if (progress <= 0.2) {
-            statusText = `Còn lại ${100 - progressPercentage}%`;
-            statusColor = "red";
           } else {
             statusText = `Còn lại ${100 - progressPercentage}%`;
             statusColor = "green";
@@ -117,12 +116,6 @@ export default function SavingGoalScreen({ navigation }) {
               onPress={() => navigateToDetail(goal)}
               style={tw`border rounded-lg p-4 mb-4 bg-white`}
             >
-              <TouchableOpacity
-                style={tw`absolute top-2 right-2`}
-                onPress={() => navigateToEdit(goal)}
-              >
-                <Icon name="edit" size={24} color="#6B46C1" />
-              </TouchableOpacity>
               <View style={tw`flex-row items-center`}>
                 <Image
                   source={require("../../assets/images/favicon.png")}
