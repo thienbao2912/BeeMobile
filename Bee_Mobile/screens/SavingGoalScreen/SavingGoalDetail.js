@@ -4,7 +4,12 @@ import tw from 'twrnc';
 import { ProgressBar } from "react-native-paper";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-export default function SavingGoalDetail({ navigation }) {
+export default function SavingGoalDetail({ route, navigation }) {
+  const { goal } = route.params;
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
   const [showDeposit, setShowDeposit] = useState(false);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -17,25 +22,33 @@ export default function SavingGoalDetail({ navigation }) {
     { id: 5, title: 'Trả nợ', note: 'Bạn trả nợ', amount: '-2.000.000 đ', icon: require("../../assets/images/favicon.png") },
   ];
 
+  const progress = goal.currentAmount / goal.targetAmount;
+
   return (
     <ScrollView style={tw`p-5 bg-gray-100`}>
       <View style={tw`bg-white p-4 rounded-lg mb-4 relative`}>
         <TouchableOpacity
           style={tw`absolute top-2 right-2`}
-          onPress={() => navigation.navigate('SavingGoalEdit')}
-        >
+          onPress={() => navigation.navigate('SavingGoalEdit', { goalId: goal._id })}
+          >
           <Icon name="edit" size={24} color="#6B46C1" />
         </TouchableOpacity>
         <View style={tw`flex-row items-center`}>
           <Image source={require("../../assets/images/favicon.png")} style={tw`w-12 h-12 rounded-full mr-4`} />
           <View style={tw`flex-1`}>
-            <Text style={tw`font-bold text-lg`}>Mua giường thú cưng</Text>
-            <Text style={tw`text-gray-500`}>22/08/2024 - 25/08/2024</Text>
-            <Text style={tw`text-gray-500`}>200.000đ - 200.000đ</Text>
+            <Text style={tw`font-bold text-lg`}>{goal.name}</Text>
+            <Text style={tw`text-gray-500`}>
+              {formatDate(goal.startDate)} - {formatDate(goal.endDate)}
+            </Text>
+            <Text style={tw`text-gray-500`}>
+              {goal.currentAmount.toLocaleString()}đ - {goal.targetAmount.toLocaleString()}đ
+            </Text>
           </View>
         </View>
-        <ProgressBar progress={1} color="green" style={tw`h-2 rounded-full mt-2`} />
-        <Text style={tw`text-green-500 font-bold mt-2`}>Hoàn thành</Text>
+        <ProgressBar progress={progress} color={progress === 1 ? "green" : "blue"} style={tw`h-2 rounded-full mt-2`} />
+        <Text style={tw`${progress === 1 ? 'text-green-500' : 'text-blue-500'} font-bold mt-2`}>
+          {progress === 1 ? 'Hoàn thành' : ` đã hoàn thành ${Math.floor(progress * 100)}%`}
+        </Text>
       </View>
 
       <TouchableOpacity

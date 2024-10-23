@@ -3,7 +3,9 @@ import { View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView } fr
 import Svg, { Ellipse } from "react-native-svg";
 import { ProgressBar } from "react-native-paper";
 import tw from "twrnc";
-import { fetchAllSavingGoals } from "../../services/SavingsGoalService/index";
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import * as SecureStore from 'expo-secure-store';
+import { fetchAllSavingGoalsByUser } from "../../services/SavingsGoalService/index";
 
 export default function SavingGoalScreen({ navigation }) {
   const [savingGoals, setSavingGoals] = useState([]);
@@ -12,8 +14,11 @@ export default function SavingGoalScreen({ navigation }) {
   useEffect(() => {
     const loadSavingGoals = async () => {
       try {
-        const goals = await fetchAllSavingGoals();
-        setSavingGoals(goals);
+        const userId = await SecureStore.getItemAsync('userId');
+        if (userId) {
+          const goals = await fetchAllSavingGoalsByUser(userId);
+          setSavingGoals(goals);
+        }
       } catch (error) {
         console.error("Error loading saving goals", error);
       } finally {
@@ -27,7 +32,9 @@ export default function SavingGoalScreen({ navigation }) {
   const navigateToDetail = (goal) => {
     navigation.navigate('SavingGoalDetail', { goal });
   };
-
+  const navigateToEdit = (goal) => {
+    navigation.navigate('SavingGoalEdit', { goal });
+  };
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
@@ -110,6 +117,12 @@ export default function SavingGoalScreen({ navigation }) {
               onPress={() => navigateToDetail(goal)}
               style={tw`border rounded-lg p-4 mb-4 bg-white`}
             >
+              <TouchableOpacity
+                style={tw`absolute top-2 right-2`}
+                onPress={() => navigateToEdit(goal)}
+              >
+                <Icon name="edit" size={24} color="#6B46C1" />
+              </TouchableOpacity>
               <View style={tw`flex-row items-center`}>
                 <Image
                   source={require("../../assets/images/favicon.png")}

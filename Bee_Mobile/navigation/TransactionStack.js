@@ -1,7 +1,5 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-
-
 import AddTransactionScreen from "../screens/TransactionSrceen/AddTransactionScreen";
 import TransactionList from "../screens/TransactionSrceen/TransactionListScreen";
 import ExpenseAdd from "../screens/TransactionSrceen/ExpenseSrceen/ExpenseAdd";
@@ -9,6 +7,7 @@ import ExpenseDetail from "../screens/TransactionSrceen/ExpenseSrceen/ExpenseDet
 import IncomeAdd from "../screens/TransactionSrceen/IncomeSrceen/IncomeAdd";
 import ExpenseList from "../screens/TransactionSrceen/ExpenseSrceen/ExpenseList";
 import IncomeList from "../screens/TransactionSrceen/IncomeSrceen/IncomeList";
+import CategoryList from "../screens/TransactionSrceen/ExpenseSrceen/CategoryList";
 
 const TransactionStack = createStackNavigator();
 
@@ -31,13 +30,18 @@ const TransactionStack = createStackNavigator();
               options={{ title: 'Thêm thu nhập' }} 
             />
             <TransactionStack.Screen 
-              name="TransactionList" 
-              component={TransactionList} 
+              name="CategoryList" 
+              component={CategoryList} 
               options={{ title: 'Lịch sử giao dịch' }} 
             />
               <TransactionStack.Screen 
               name="ExpenseList" 
               component={ExpenseList} 
+              options={{ title: 'Lịch sử chi tiêu' }} 
+            />
+               <TransactionStack.Screen 
+              name="ExpenseDetail" 
+              component={ExpenseDetail} 
               options={{ title: 'Lịch sử chi tiêu' }} 
             />
           </TransactionStack.Navigator>

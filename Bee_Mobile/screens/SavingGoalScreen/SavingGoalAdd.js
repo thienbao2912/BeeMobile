@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Image, Alert } from 'react-native';
 import tw from 'twrnc';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { ProgressBar } from "react-native-paper";
 import { addSavingGoal } from '../../services/SavingsGoalService/index';
+import * as SecureStore from 'expo-secure-store';
 
 export default function AddGoal() {
   const [goalName, setGoalName] = useState('');
@@ -37,13 +37,16 @@ export default function AddGoal() {
   };
 
   const handleSaveGoal = async () => {
+    const userId = await SecureStore.getItemAsync('userId');  // Lấy userId từ SecureStore
+
     const newGoal = {
       name: goalName,
       targetAmount: parseInt(goalAmount, 10),
       currentAmount: parseInt(savedAmount, 10),
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      category: selectedCategory,
+      categoryId: selectedCategory,  // Sử dụng categoryId thay vì category
+      userId: userId  // Thêm userId
     };
 
     try {
@@ -59,7 +62,9 @@ export default function AddGoal() {
     } catch (error) {
       Alert.alert('Lỗi', error.message, [{ text: 'OK' }]);
     }
-  };
+};
+
+  
 
   return (
     <View style={tw`flex-1`}>
@@ -141,9 +146,9 @@ export default function AddGoal() {
         </View>
 
         <View style={tw`bg-white p-4 rounded-lg mb-4`}>
-          <Text style={tw`font-bold text-lg mb-3`}>Danh mục</Text> 
+          <Text style={tw`font-bold text-lg mb-3`}>Danh mục</Text>
           <View style={tw`flex-row flex-wrap justify-between mb-5`}>
-            {['Ăn', 'Uống', 'Mua sắm', 'Giáo dục', 'Di chuyển', 'Du lịch'].map((category, index) => (
+            {['66a4a378dca6b1337cf361cd', 'Uống', 'Mua sắm', 'Giáo dục', 'Di chuyển', 'Du lịch'].map((category, index) => (
               <TouchableOpacity
                 key={index}
                 style={tw`w-1/3 p-3 border border-gray-300 rounded-lg mb-3 items-center ${selectedCategory === category ? 'bg-gray-200' : ''}`}
