@@ -20,9 +20,9 @@ export default function ExpenseDetail({ route, navigation }) {
 
   const handleEditExpense = () => {
     if (transaction.type === 'expense') {
-      navigation.navigate('ExpenseEdit', { transaction });
+      navigation.navigate('ExpenseEdit', { transactionId: transaction._id  });
     } else if (transaction.type === 'income') {
-      navigation.navigate('IncomeEdit', { transaction });
+      navigation.navigate('IncomeEdit', { transactionId: transaction._id });
     }
   };
 
@@ -120,7 +120,7 @@ export default function ExpenseDetail({ route, navigation }) {
             isVisible={isModalVisible}
             onConfirm={confirmDeleteExpense} 
             onCancel={cancelDeleteExpense}
-            message="Bạn chắc chắn muốn xóa giao dịch này?"
+            message="Bạn chắc chắn xóa giao dịch này?"
           />
         </>
       )}

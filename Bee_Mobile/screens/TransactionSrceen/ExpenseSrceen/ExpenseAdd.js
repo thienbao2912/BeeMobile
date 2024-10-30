@@ -236,7 +236,6 @@ const ExpenseAdd = () => {
             )}
           </TouchableOpacity>
 
-          {/* Danh mục thứ hai */}
           {categories[index + 1] && (
             <TouchableOpacity
               key={categories[index + 1]._id}
@@ -260,7 +259,6 @@ const ExpenseAdd = () => {
             </TouchableOpacity>
           )}
 
-          {/* Danh mục thứ ba */}
           {categories[index + 2] && (
             <TouchableOpacity
               key={categories[index + 2]._id}
@@ -301,7 +299,7 @@ const ExpenseAdd = () => {
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator size="small" color="#fff" /> // Hiển thị biểu tượng loading
+          <ActivityIndicator size="small" color="#fff" /> 
         ) : (
           <Text style={tw`text-white font-bold text-center`}>
             {isButtonDisabled ? 'Đang thêm nha...' : 'Thêm chi tiêu'}

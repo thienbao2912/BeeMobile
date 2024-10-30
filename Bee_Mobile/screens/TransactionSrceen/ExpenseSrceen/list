@@ -1,0 +1,115 @@
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import * as SecureStore from 'expo-secure-store';
+import { fetchAllTransactions } from "../../../services/Transaction";
+import tw from "twrnc";
+import { SwipeListView } from 'react-native-swipe-list-view';
+import { Ionicons } from '@expo/vector-icons';
+
+export default function ExpenseList({ route, navigation }) {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const loadUserId = async () => {
+      const id = await SecureStore.getItemAsync('userId');
+      setUserId(id);
+    };
+    loadUserId();
+  }, []);
+
+  const loadTransactions = async () => {
+    if (userId) {
+      try {
+        const data = await fetchAllTransactions();
+        const filteredTransactions = data.filter(transaction => transaction.userId === userId);
+        setTransactions(filteredTransactions);
+      } catch (error) {
+        console.error("Error loading data", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.refresh) {
+        setLoading(true);
+        loadTransactions();
+      }
+    }, [route.params?.refresh, userId])
+  );
+
+  useEffect(() => {
+    loadTransactions();
+  }, [userId]);
+
+  const handleEdit = (transaction) => {
+    if (transaction.type === 'expense') {
+      navigation.navigate('ExpenseEdit', { transactionId: transaction._id });
+    } else if (transaction.type === 'income') {
+      navigation.navigate('IncomeEdit', { transactionId: transaction._id });
+    }
+  };
+
+  const handleDelete = (transactionId) => {
+    console.log("Deleting transaction:", transactionId);
+    // Xử lý xóa giao dịch ở đây
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={tw`flex-row items-center p-2 border-b border-gray-200 bg-white`}>
+      <Image
+        source={
+          item.categoryId?.image
+            ? { uri: item.categoryId.image }
+            : require("../../../assets/images/thumbs-up.png")
+        }
+        style={tw`w-12 h-12 mr-4`}
+      />
+      <View style={tw`flex-1`}>
+        <Text style={tw`text-lg font-bold`}>{item.description}</Text>
+        <Text style={tw`text-gray-500`}>{item.amount}</Text>
+      </View>
+    </View>
+  );
+
+  const renderHiddenItem = (data) => (
+    <View style={tw`flex-row justify-end`}>
+      <TouchableOpacity
+        style={tw`bg-yellow-500 justify-center items-center w-20`}
+        onPress={() => handleEdit(data.item)}
+      >
+        <Ionicons name="pencil" size={24} color="white" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={tw`bg-red-500 justify-center items-center w-20`}
+        onPress={() => handleDelete(data.item._id)}
+      >
+        <Ionicons name="trash" size={24} color="white" />
+      </TouchableOpacity>
+    </View>
+  );
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  return (
+    <SwipeListView
+      data={transactions}
+      keyExtractor={(item) => item._id}
+      renderItem={renderItem}
+      renderHiddenItem={renderHiddenItem}
+      rightOpenValue={-150}  // Kéo sang trái sẽ mở 150px để hiển thị nút
+      stopRightSwipe={-150}  // Giới hạn độ mở tối đa
+      previewRowKey={"0"}
+      previewOpenValue={-40}
+      previewOpenDelay={3000}
+      disableRightSwipe
+    />
+  );
+}

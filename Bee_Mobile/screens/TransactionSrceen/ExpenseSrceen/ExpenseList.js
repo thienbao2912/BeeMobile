@@ -6,6 +6,7 @@ import { fetchAllTransactions } from "../../../services/Transaction"; // Add cat
 import tw from "twrnc";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
+import { SwipeListView } from 'react-native-swipe-list-view';
 
 export default function ExpenseList({ route, navigation }) {
   const [transactions, setTransactions] = useState([]);
@@ -226,7 +227,13 @@ export default function ExpenseList({ route, navigation }) {
       </View>
 
       <View style={tw`w-full pl-2 pr-2`}>
-        {sortedDates.map((date) => (
+      {transactions.length === 0 ? (
+          <View style={tw`items-center justify-center`}>
+            <Image source={require('../../../assets/images/thumbs-up.png')} style={tw`h-10 w-10`} />
+            <Text style={tw`text-gray-500 text-lg mt-4`}>Bạn chưa có chi tiêu nào cả</Text>
+          </View>
+        ) : (
+        sortedDates.map((date) => (
           <View key={date}>
             <View style={tw`bg-indigo-200 p-1.5 rounded-200 mb-3 self-start`}>
               <Text style={tw`text-white font-bold text-xs`}>{date}</Text>
@@ -270,7 +277,8 @@ export default function ExpenseList({ route, navigation }) {
               </TouchableOpacity>
             ))}
           </View>
-        ))}
+        ))
+      )}
       </View>
       <Modal
   visible={isModalVisible}

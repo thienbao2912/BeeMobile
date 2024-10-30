@@ -19,13 +19,14 @@ import { fetchTransactionById, editTransaction, fetchAllCategories } from "../..
 import * as SecureStore from 'expo-secure-store';
 import tw from "twrnc";
 
+
 moment.locale('vi');
 
 const CategorySelector = ({ categories, selectedCategory, onSelect }) => (
   <View>
   {categories.length > 0 ? (
   categories.reduce((rows, category, index) => {
-    if (index % 3 === 0) { // Cứ mỗi 3 mục thì tạo một hàng mới
+    if (index % 3 === 0) { 
       rows.push(
         <View key={index} style={tw`flex-row justify-between mb-2`}>
           <CategoryButton 
@@ -92,6 +93,7 @@ const ExpenseEdit = () => {
   const [tempSelectedDate, setTempSelectedDate] = useState(selectedDate); 
   const [isModalVisible, setModalVisible] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true); // New loading state for categories
+  const [isButtonDisabled, setButtonDisabled] = useState(false);
 
   useEffect(() => {
     const loadUserId = async () => {
@@ -276,8 +278,19 @@ const ExpenseEdit = () => {
         selectedCategory={selectedCategory} 
         onSelect={setSelectedCategory} 
       />
-         <TouchableOpacity style={tw`bg-indigo-600 p-4 rounded-lg`} onPress={handleEditExpense}>
-        <Text style={tw`text-white text-center font-bold`}>Cập nhật chi tiêu</Text>
+         <TouchableOpacity 
+         style={tw`bg-indigo-600 p-4 rounded-lg`} 
+         onPress={handleEditExpense}
+         disabled={loading}
+         >
+
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" /> 
+        ) : (
+          <Text style={tw`text-white font-bold text-center`}>
+            {isButtonDisabled ? 'Đang cập nhật...' : 'Cập nhật'}
+          </Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );
