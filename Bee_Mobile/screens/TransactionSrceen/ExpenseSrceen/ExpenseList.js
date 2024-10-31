@@ -255,7 +255,7 @@ export default function ExpenseList({ route, navigation }) {
                   <Text style={tw`text-lg font-bold mb-1`}>
                     {transaction.categoryId ? 
                       (transaction.categoryId.name.length > 20 ? transaction.categoryId.name.substring(0, 20) + '...' : transaction.categoryId.name)
-                      : 'Tên danh mục'}
+                      : 'Tên danhh mục'}
                   </Text>
                   <Text style={tw`text-base text-gray-600`}>
                     {transaction.description.length > 18 ? transaction.description.substring(0, 18) + '...' : transaction.description}
