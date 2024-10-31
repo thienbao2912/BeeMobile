@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config();
 const connectDB = require("./config/database");
 const savingsGoalRouter = require("./routes/SavingsGoalRouter");
@@ -7,10 +8,12 @@ const authRoutes = require("./routes/auth");
 const transactionRoutes = require("./routes/transaction");
 
 const app = express();
-
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'screens'));
 connectDB();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: process.env.URL_FE
 }));

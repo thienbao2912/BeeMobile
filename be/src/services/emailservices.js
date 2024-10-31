@@ -16,11 +16,11 @@ const transporter = nodemailer.createTransport({
 
 module.exports.sendPasswordResetEmail = async (email, token) => {
     try {
-        const resetUrl = `${process.env.URL_FE}/reset-password?token=${token}`;
-        const emailTemplate = await ejs.renderFile(path.join(__dirname, '..', 'views', 'resetPasswordEmail.ejs'), { resetUrl });
+        const resetUrl = `${process.env.URL_FE}/api/auth/resetpassword/${token}`;
+        const emailTemplate = await ejs.renderFile(path.join(__dirname, '..', 'screens', 'resetPasswordEmail.ejs'), { resetUrl });
 
         const info = await transporter.sendMail({
-            from: "Be Money <noreply@gmail.com>",
+            from: "Bee Money <laravelp9@gmail.com>",
             to: email,
             subject: "Reset Password",
             html: emailTemplate

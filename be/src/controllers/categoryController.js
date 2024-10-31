@@ -1,4 +1,4 @@
-const categoryModel = require('../models/Category')
+const Category = require('../models/Category')
 const Transaction = require("../models/Transaction");
 class CategoryController {
     static async getAll(req, res) {
@@ -8,7 +8,7 @@ class CategoryController {
             if (userRole === "user") {
                 let categories = []
                 let adminCategories = []
-                const adminCategoriesDb = await categoryModel.find({ status: 'active' }).populate({
+                const adminCategoriesDb = await Category.find({ status: 'active' }).populate({
                     path: 'userId',
                     select: 'role'
                 });
@@ -17,7 +17,7 @@ class CategoryController {
                         adminCategories.push(element)
                     }
                 });
-                let userCategories = await categoryModel.find({ userId }).populate({
+                let userCategories = await Category.find({ userId }).populate({
                     path: 'userId',
                     select: 'role'
                 });
@@ -33,12 +33,13 @@ class CategoryController {
         }
     }
     
+    
     static async add(req, res) {
         try {
             let userId = req.user.id
             let { name, image, description, type } = req.body
             let data = { userId, name, image, description, type }
-            const savedCategory = await categoryModel.create(data)
+            const savedCategory = await Category.create(data)
             res.status(201).json({ message: "Danh mục đã được tạo thành công", savedCategory });
         } catch (error) {
             res.status(500).json({
@@ -51,7 +52,7 @@ class CategoryController {
             let userId = req.user.id
             let id = req.params.id
 
-            let data = await categoryModel.findOne({ userId, _id: id })
+            let data = await Category.findOne({ userId, _id: id })
             res.status(200).json({ data });
         } catch (error) {
             res.status(500).json({
@@ -65,7 +66,7 @@ class CategoryController {
             let id = req.params.id
             let data = { userId, ...req.body }
             console.log(data);
-            let result = await categoryModel.findOneAndUpdate({ userId, _id: id }, data)
+            let result = await Category.findOneAndUpdate({ userId, _id: id }, data)
             res.status(200).json({ message: 'Đã sửa thành công', data: result });
         } catch (error) {
             res.status(500).json({

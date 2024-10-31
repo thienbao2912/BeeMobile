@@ -1,8 +1,9 @@
 import axios from "axios";
 import * as SecureStore from 'expo-secure-store';
 
-const BASE_URL = "http://10.0.2.2:4000";
-
+const BASE_URL = "http://172.16.18.84:4000";
+// 192.168.1.5 nhà Cần Thơ
+// 192.168.1.145 safari
 const getToken = async () => {
     try {
         const token = await SecureStore.getItemAsync('token');
@@ -10,7 +11,7 @@ const getToken = async () => {
     } catch (error) {
         console.error('Error getting token:', error);
         return null;
-    }
+    }  
 };
 
 const request = async ({

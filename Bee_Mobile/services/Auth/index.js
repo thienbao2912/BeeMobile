@@ -94,9 +94,10 @@ const forgotPassword = async (email) => {
             path: "/api/auth/forgot-password",
             data: { email },
         });
-        return res.data;
+        return { success: res.success, message: res.msg };
     } catch (error) {
-        throw error.response?.data?.message || "Đã có lỗi xảy ra.";
+        console.error('Đặt lại mật khẩu thất bại:', error.response ? error.response.data : error.message);
+        throw error;
     }
 };
 

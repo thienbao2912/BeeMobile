@@ -113,14 +113,21 @@ const authController = {
         }
     },
 
-    resetPassword : async (req, res) => {
+    resetPassword: async (req, res) => {
         try {
-            const { password, token } = req.body;
+            const { password, confirmPassword, token } = req.body;
     
+            // Kiểm tra nếu mật khẩu hoặc token bị thiếu
             if (!password || !token) {
                 return res.status(400).json({ error: 'Password and token are required' });
             }
     
+            // Kiểm tra nếu mật khẩu và xác nhận mật khẩu không khớp
+            if (password !== confirmPassword) {
+                return res.status(400).json({ error: 'Mật khẩu xác nhận không khớp' });
+            }
+    
+            // Mã hóa token và tìm người dùng
             const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
             const user = await User.findOne({ resetPasswordToken: hashedToken, resetPasswordExpires: { $gt: Date.now() } });
     
@@ -128,16 +135,22 @@ const authController = {
                 return res.status(400).json({ error: 'Token đã hết hạn hoặc không hợp lệ' });
             }
     
-            user.password = password; // Bạn có thể thêm mã hóa mật khẩu nếu cần
+            // Cập nhật mật khẩu mới
+            user.password = password;
             user.resetPasswordToken = undefined;
             user.resetPasswordExpires = undefined;
             await user.save();
     
-            res.status(200).json({ success: true });
+            res.render('complete');
         } catch (error) {
-            console.error("Server Error:", error); // Debugging
+            console.error("Server Error:", error);
             res.status(500).json({ error: 'Server error' });
         }
+    },
+
+    resetpassword : async (req, res) => {
+        const { token } = req.params;
+        res.render('index', { token });
     },
 
     getAllUser: async (req, res) => {
