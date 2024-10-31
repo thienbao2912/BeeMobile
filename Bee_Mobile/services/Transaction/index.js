@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store'; // Import SecureStore để lấy token
 
-const API_URL = 'http://172.16.18.18:4000/api';
+const API_URL = 'http://172.16.18.84:4000/api';
 
 // Hàm lấy tất cả giao dịch
 export const fetchAllTransactions = async () => {
@@ -13,9 +13,44 @@ export const fetchAllTransactions = async () => {
     return data;
   } catch (error) {
     console.error('Error fetching transactions:', error);
-    throw error; // Re-throw the error after logging
+    throw error; 
   }
 };
+
+
+
+export const getCategoryById = async (categoryId) => {
+  try {
+    // Lấy token từ SecureStore
+    const token = await SecureStore.getItemAsync('token');
+    // console.log('Token:', token); 
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_URL}/v2/categories/${categoryId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json(); // Lấy dữ liệu lỗi từ phản hồi
+      console.error('Server Response:', errorData); // Ghi lại phản hồi từ server
+      throw new Error(errorData.message || 'Failed to fetch category');
+    }
+
+    const data = await response.json();
+    return data; // Trả về dữ liệu danh mục đã lấy
+  } catch (error) {
+    console.error('Error fetching category by ID:', error);
+    throw error; // Ném lại lỗi sau khi ghi
+  }
+};
+
 
 // Hàm lấy tất cả danh mục
 export const fetchAllCategories = async () => {
@@ -57,12 +92,12 @@ export const addTransaction = async (transactionData) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(transactionData), // Convert transaction data to JSON
+      body: JSON.stringify(transactionData), 
     });
     return await response.json();
   } catch (error) {
     console.error('Error adding transaction:', error);
-    throw error; // Re-throw the error for handling elsewhere
+    throw error; 
   }
 };
 
@@ -88,25 +123,52 @@ export const deleteTransaction = async (transactionId) => {
 };
 
 // Hàm lấy một giao dịch theo ID
-// export const fetchTransactionById = async (transactionId) => {
-//   try {
-//     const response = await fetch(`${API_URL}/transactions/${transactionId}`, {
-//       method: 'GET',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//     });
+export const fetchTransactionById = async (transactionId, userId) => {
+  try {
+    console.log(`Fetching transaction from URL: ${API_URL}/transactions/${transactionId}?userId=${userId}`); 
+    const response = await fetch(`${API_URL}/transactions/${transactionId}?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-//     if (!response.ok) {
-//       const errorData = await response.json();
-//       console.error('Server Response:', errorData);
-//       throw new Error(errorData.message || 'Failed to fetch transaction');
-//     }
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Server Response:', errorData);
+      throw new Error(errorData.message || 'Failed to fetch transaction');
+    }
 
-//     const data = await response.json();
-//     return data; // Trả về giao dịch đã lấy
-//   } catch (error) {
-//     console.error('Error fetching transaction:', error);
-//     throw error; // Ném lại lỗi cho việc xử lý sau này
-//   }
-// };
+    const data = await response.json();
+    return data; 
+  } catch (error) {
+    console.error('Error fetching transaction:', error);
+    throw error; 
+  }
+};
+
+
+
+export const editTransaction = async (transactionId, updatedData) => {
+  try {
+    const response = await fetch(`${API_URL}/transactions/${transactionId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Server Response:', errorData);
+      throw new Error(errorData.message || 'Failed to update transaction');
+    }
+
+    const data = await response.json();
+    return data; 
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+    throw error; 
+  }
+};
