@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Image } from 'react-native';
 import tw from 'twrnc';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { ProgressBar } from "react-native-paper";
+import { ProgressBar } from 'react-native-paper';
+import { fetchSavingGoalById, updateSavingGoal } from '../../services/SavingsGoalService';
 
-export default function AddGoal() {
+export default function EditGoal({ route, navigation }) {
+  const { goalId } = route.params;
   const [goalName, setGoalName] = useState('');
   const [goalAmount, setGoalAmount] = useState('');
   const [savedAmount, setSavedAmount] = useState('');
@@ -13,6 +15,24 @@ export default function AddGoal() {
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+
+  useEffect(() => {
+    const loadSavingGoal = async () => {
+      try {
+        const goal = await fetchSavingGoalById(goalId);
+        setGoalName(goal.name);
+        setGoalAmount(goal.targetAmount.toString());
+        setSavedAmount(goal.currentAmount.toString());
+        setStartDate(new Date(goal.startDate));
+        setEndDate(new Date(goal.endDate));
+        setSelectedCategory(goal.categoryId);
+      } catch (error) {
+        console.error('Error loading saving goal:', error);
+      }
+    };
+
+    loadSavingGoal();
+  }, [goalId]);
 
   const onChangeStartDate = (event, selectedDate) => {
     const currentDate = selectedDate || startDate;
@@ -29,6 +49,24 @@ export default function AddGoal() {
   const handleNumericInput = (text, setState) => {
     const numericValue = text.replace(/[^0-9]/g, '');
     setState(numericValue);
+  };
+
+  const handleSave = async () => {
+    const goalData = {
+      name: goalName,
+      targetAmount: parseFloat(goalAmount),
+      currentAmount: parseFloat(savedAmount),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      categoryId: selectedCategory,
+    };
+
+    try {
+      await updateSavingGoal(goalId, goalData);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error updating saving goal:', error);
+    }
   };
 
   const handleCategoryPress = (category) => {
@@ -131,7 +169,7 @@ export default function AddGoal() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={tw`bg-purple-600 py-4 rounded-lg items-center`}>
+      <TouchableOpacity style={tw`bg-purple-600 py-4 rounded-lg items-center`} onPress={handleSave}>
         <Text style={tw`text-white font-bold`}>Lưu</Text>
       </TouchableOpacity>
     </ScrollView>
