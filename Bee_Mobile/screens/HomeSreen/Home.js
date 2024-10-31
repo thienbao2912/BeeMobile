@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,17 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Image,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import PropTypes from "prop-types";
-import { Image } from "react-native";
+import { fetchAllTransactions } from "../../services/SavingsGoalService"
+import { fetchAllSavingGoalsByUser } from "../../services/SavingsGoalService";
+import tw from "twrnc";
+import * as SecureStore from "expo-secure-store";
+import { useNavigation } from "@react-navigation/native";
+
 const Card = ({ title, children }) => {
   return (
     <View style={styles.card}>
@@ -25,34 +31,77 @@ Card.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-// Dữ liệu giao dịch mẫu với mô tả
-const transactions = [
-  {
-    id: "1",
-    title: "Mua hàng", 
-    amount: "-50.000đ",
-    description: "Mua sách",
-    imageSource: require("../../assets/images/diet.png"),
-  },
-];
-const pieData = [
-  { key: 1, value: 55, svg: { fill: "#E67E22" } },
-  { key: 2, value: 30, svg: { fill: "#7D3C98" } },
-  { key: 3, value: 15, svg: { fill: "#F39C12" } },
-];
 const Home = () => {
+  const [transactions, setTransactions] = useState([]);
+  const [savingGoals, setSavingGoals] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
+
+  // Lấy userId từ SecureStore
+  useEffect(() => {
+    const loadUserId = async () => {
+      const id = await SecureStore.getItemAsync("userId");
+      setUserId(id);
+    };
+    loadUserId();
+  }, []);
+
+  // Tải giao dịch cho người dùng
+  const loadTransactions = async () => {
+    if (userId) {
+      try {
+        const data = await fetchAllTransactions();
+        const filteredTransactions = data.filter(
+          (transaction) => transaction.userId === userId
+        );
+        setTransactions(filteredTransactions);
+      } catch (error) {
+        console.error("Lỗi load dữ liệu giao dịch", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Tải mục tiêu tiết kiệm cho người dùng
+  const loadSavingGoals = async () => {
+    try {
+      const id = await SecureStore.getItemAsync("userId"); // Lấy lại userId
+      if (id) {
+        const goals = await fetchAllSavingGoalsByUser(id); // Gọi hàm fetch với userId
+        console.log("Saving goals data:", goals); // Kiểm tra dữ liệu
+        setSavingGoals(goals);
+      }
+    } catch (error) {
+      console.error("Error loading saving goals", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Khi userId thay đổi, tải dữ liệu
+  useEffect(() => {
+    if (userId) {
+      loadTransactions();
+      loadSavingGoals(); // Gọi hàm loadSavingGoals
+    }
+  }, [userId]);
+
+  const navigateToDetail = (transaction) => {
+    // Chuyển hướng đến trang chi tiết giao dịch
+    navigation.navigate("TransactionDetail", { transaction });
+  };
+
   return (
     <ScrollView style={styles.container}>
-      {/* Phần tiêu đề và biểu tượng */}
       <View style={styles.header}>
         <View style={styles.moneyView}>
           <Text style={styles.moneyText}>999,888,777.00đ</Text>
-          {/* <FontAwesome name="eye" size={24} color="black" style={styles.icon} /> */}
         </View>
         <MaterialIcons name="notifications" size={28} color="black" />
       </View>
 
-      {/* Thẻ nội dung */}
       <View style={styles.cardContainer}>
         <Card title="Thống kê">
           <View style={styles.financeRow}>
@@ -69,109 +118,104 @@ const Home = () => {
               <Text style={styles.label}>Chi tiêu</Text>
             </View>
           </View>
-
-          <View style={styles.switchRow}>
-            <TouchableOpacity style={styles.switchButton}>
-              <Text style={styles.switchText}>Hàng tháng</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.switchButton, styles.activeSwitch]}
-            >
-              <Text style={styles.activeSwitchText}>Hàng năm</Text>
-            </TouchableOpacity>
-          </View>
         </Card>
+
+        {/* Mục tiêu tiết kiệm */}
         <Card title="Mục tiêu tiết kiệm">
-          <View style={styles.savingGoalsContainer}>
-            {/* Mục tiêu 1: Du lịch */}
-            <View style={styles.savingGoal}>
-              <View style={styles.savingIconContainer}>
-                <FontAwesome name="suitcase" size={40} color="#7D3C98" />
-              </View>
-              <Text style={styles.savingGoalText}>Du lịch</Text>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progress,
-                    { width: "0%", backgroundColor: "#ccc" },
-                  ]}
-                />
-              </View>
-              <Text style={styles.progressText}>0%</Text>
-            </View>
-
-            {/* Mục tiêu 2: Học tập */}
-            <View style={styles.savingGoal}>
-              <View style={styles.savingIconContainer}>
-                <FontAwesome name="book" size={40} color="#F39C12" />
-              </View>
-              <Text style={styles.savingGoalText}>Học tập</Text>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progress,
-                    { width: "30%", backgroundColor: "#F7DC6F" },
-                  ]}
-                />
-              </View>
-              <Text style={styles.progressText}>30%</Text>
-            </View>
-
-            {/* Mục tiêu 3: Tập gym */}
-            <View style={styles.savingGoal}>
-              <View style={styles.savingIconContainer}>
-                <FontAwesome name="dumbbell" size={40} color="#28B463" />
-              </View>
-              <Text style={styles.savingGoalText}>Tập gym</Text>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progress,
-                    { width: "60%", backgroundColor: "#28B463" },
-                  ]}
-                />
-              </View>
-              <Text style={styles.progressText}>60%</Text>
-            </View>
-          </View>
-        </Card>
-
-        <Card title="Giao dịch gần đây">
           <FlatList
-            data={transactions}
+            data={savingGoals}
             renderItem={({ item }) => (
-              <View style={styles.transactionContainer}>
-                <View style={styles.logoContainer}>
-                  <Image
-                    source={item.imageSource}
-                    style={styles.transactionImage}
+              <View style={styles.savingGoal}>
+                <View style={styles.savingIconContainer}>
+                  <FontAwesome name="suitcase" size={40} color="#7D3C98" />
+                </View>
+                <Text style={styles.savingGoalText}>{item.name}</Text>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[
+                      styles.progress,
+                      {
+                        width: `${item.progress}%`,
+                        backgroundColor: item.color || "#ccc",
+                      },
+                    ]}
                   />
                 </View>
-                <View style={styles.transactionDetails}>
-                  {/* Tên giao dịch */}
-                  <Text style={styles.transactionTitle}>{item.title}</Text>
-
-                  {/* Mô tả giao dịch */}
-                  <Text style={styles.transactionDescription}>
-                    {item.description}
-                  </Text>
-
-                  {/* Thời gian giao dịch */}
-                  <Text style={styles.transactionTime}>{item.time}</Text>
-                </View>
-
-                {/* Số tiền nằm bên phải */}
-                <Text style={styles.transactionAmount}>{item.amount}</Text>
+                <Text style={styles.progressText}>{item.progress}%</Text>
               </View>
             )}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
+            horizontal={true}
           />
+        </Card>
+
+        {/* Giao dịch */}
+        <Card title="Giao dịch">
+          <FlatList
+            data={transactions.slice(0, 3)}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item: transaction }) => (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={tw`flex-row items-center bg-white rounded-lg p-2.5 mb-3 mx-1`}
+                onPress={() => navigateToDetail(transaction)}
+              >
+                <View style={tw`p-1.5 mr-4 rounded-2 bg-indigo-50`}>
+                  <Image
+                    source={{
+                      uri:
+                        transaction.categoryId?.image ||
+                        "../../assets/images/rabbit.png",
+                    }}
+                    style={tw`w-10 h-10`}
+                  />
+                </View>
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-lg font-bold mb-1`}>
+                    {transaction.categoryId
+                      ? transaction.categoryId.name.length > 20
+                        ? transaction.categoryId.name.substring(0, 20) + "..."
+                        : transaction.categoryId.name
+                      : "Tên danh mục"}
+                  </Text>
+                  <Text style={tw`text-base text-gray-600`}>
+                    {transaction.description.length > 20
+                      ? transaction.description.substring(0, 20) + "..."
+                      : transaction.description}
+                  </Text>
+                </View>
+                <View style={tw`items-end`}>
+                  <Text
+                    style={[
+                      tw`text-lg font-medium`,
+                      transaction.type === "expense"
+                        ? tw`text-red-600`
+                        : tw`text-green-600`,
+                    ]}
+                  >
+                    {transaction.type === "expense" ? "-" : "+"}{" "}
+                    {(typeof transaction.amount === "number"
+                      ? Math.abs(transaction.amount)
+                      : 0
+                    ).toLocaleString()}{" "}
+                    đ
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+
+          <TouchableOpacity
+            style={styles.viewAllButton}
+            onPress={() => navigation.navigate("ExpenseList")}
+          >
+            <Text style={styles.viewAllText}>Xem tất cả</Text>
+          </TouchableOpacity>
         </Card>
 
         <Card title="Chi tiêu nhiều nhất">
           <Text style={styles.cardTitle}>Chi tiêu nhiều nhất</Text>
           <View style={styles.cardContent}>
-            {/* Nội dung chi tiết như danh mục chi tiêu nhiều nhất */}
             <View style={styles.itemContainer}>
               <Text style={styles.itemLabel}>Danh mục:</Text>
               <Text style={styles.itemValue}>Ăn uống</Text>
@@ -193,6 +237,7 @@ const Home = () => {
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 50,
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
@@ -213,9 +258,6 @@ const styles = StyleSheet.create({
     color: "black",
     marginRight: 10,
   },
-  icon: {
-    marginLeft: 10,
-  },
   cardContainer: {
     padding: 10,
   },
@@ -235,103 +277,50 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
   },
-  yearRow: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  year: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#b4a7d6",
-  },
-  arrow: {
-    fontSize: 20,
-    color: "#b4a7d6",
-    marginHorizontal: 10,
-  },
   financeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
   },
   financeItem: {
+    flex: 1,
     alignItems: "center",
   },
   financeAmountPurple: {
-    fontSize: 20, // Giảm kích thước xuống 22
+    fontSize: 16,
     fontWeight: "bold",
     color: "#7D3C98",
   },
   financeAmountGreen: {
-    fontSize: 20, // Giảm kích thước xuống 22
+    fontSize: 16,
     fontWeight: "bold",
-    color: "#28B463",
+    color: "green",
   },
   financeAmountRed: {
-    fontSize: 20, // Giảm kích thước xuống 22
+    fontSize: 16,
     fontWeight: "bold",
-    color: "#E74C3C",
+    color: "red",
   },
-
-  switchRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10, // Thêm khoảng cách giữa hàng và các thành phần bên trên
-  },
-  switchButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: "#ccc",
-    borderRadius: 20,
-    marginHorizontal: 10, // Tăng khoảng cách giữa các nút
-  },
-  switchButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: "#ccc",
-    borderRadius: 20,
-    marginHorizontal: 5,
-  },
-  activeSwitch: {
-    backgroundColor: "#D7BDE2",
-  },
-  switchText: {
-    color: "#000",
-  },
-  activeSwitchText: {
-    color: "#fff",
-  },
-  savingGoalsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingVertical: 10,
+  label: {
+    fontSize: 14,
+    color: "#666",
   },
   savingGoal: {
+    marginRight: 10,
     alignItems: "center",
-    width: 100,
   },
   savingIconContainer: {
-    backgroundColor: "#E8D4F6",
-    borderRadius: 10,
-    padding: 10,
     marginBottom: 5,
   },
   savingGoalText: {
     fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
+    marginVertical: 5,
+    color: "#7D3C98",
   },
   progressBar: {
-    width: "100%",
+    width: 100,
     height: 10,
-    backgroundColor: "#ccc",
+    backgroundColor: "#ddd",
     borderRadius: 5,
-    marginVertical: 5,
   },
   progress: {
     height: "100%",
@@ -339,27 +328,18 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 14,
-    color: "#333",
+    color: "#666",
+    marginTop: 5,
   },
-  cardContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-    marginVertical: 10,
+  viewAllButton: {
+    padding: 10,
+    backgroundColor: "#7D3C98",
+    borderRadius: 5,
+    alignItems: "center",
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
-  },
-  cardContent: {
-    paddingTop: 10,
+  viewAllText: {
+    color: "#fff",
+    fontSize: 16,
   },
   itemContainer: {
     flexDirection: "row",
@@ -367,52 +347,10 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   itemLabel: {
-    fontSize: 16,
-    color: "#555",
+    fontWeight: "bold",
   },
   itemValue: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  transactionContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between", // Đẩy số tiền sang phải
-    marginVertical: 10,
-    paddingHorizontal: 10,
-  },
-  logoContainer: {
-    width: 50,
-    height: 50,
-    backgroundColor: "#F0F0F0",
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 15,
-  },
-  transactionImage: {
-    width: 40,
-    height: 40, // Điều chỉnh kích thước theo nhu cầu
-    borderRadius: 5, // Nếu bạn muốn làm ảnh tròn
-  },
-  transactionDetails: {
-    flex: 1,
-  },
-  transactionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  transactionDescription: {
-    fontSize: 14,
-    color: "#7f8c8d",
-    marginTop: 5,
-  },
-  transactionAmount: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "red", // Đổi màu số tiền thành màu đỏ
+    color: "#666",
   },
 });
 
