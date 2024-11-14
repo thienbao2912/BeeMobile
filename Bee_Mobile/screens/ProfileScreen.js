@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  TextInput,
-} from "react-native";
+import { Text, View, TouchableOpacity, Image, TextInput } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useNavigation } from "@react-navigation/native";
-import { getUser, updateUser } from "../services/Auth";
-// import * as ImagePicker from "expo-image-picker"; // Để chọn ảnh từ thư viện
+import { getUserProfile } from "../services/Auth";
+import tw from "twrnc";
 
 const logout = async (navigation) => {
   try {
@@ -18,279 +11,75 @@ const logout = async (navigation) => {
     await SecureStore.deleteItemAsync("userId");
     await SecureStore.deleteItemAsync("userName");
     await SecureStore.deleteItemAsync("userRole");
+    await SecureStore.deleteItemAsync("userAvatar");
     await SecureStore.deleteItemAsync("userWallet");
-
     navigation.navigate("Login");
   } catch (error) {
     console.error("Logout error:", error);
   }
 };
-
 function Profile() {
+  const [userName, setUserName] = useState("");
+  const [userProfile, setUserProfile] = useState(null);
   const navigation = useNavigation();
-  const [user, setUser] = useState(null);
-  const [isEditing, setIsEditing] = useState(false); // Trạng thái sửa thông tin
-  const [editedUser, setEditedUser] = useState({}); // Thông tin đã chỉnh sửa
-  const [password, setPassword] = useState(""); // Mật khẩu mới
-
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchUserData = async () => {
       try {
-        const userId = await SecureStore.getItemAsync("userId");
-
-        if (userId) {
-          const userData = await getUser(userId);
-          setUser(userData);
-          setEditedUser(userData); // Đặt thông tin đã chỉnh sửa ban đầu
-        }
+        const profile = await getUserProfile();
+        setUserProfile(profile);
+        setUserName(profile?.name || "Guest");
       } catch (error) {
-        console.error("Fetch user profile error:", error);
+        console.error("Failed to fetch user data:", error);
       }
     };
-
-    fetchUserProfile();
+    fetchUserData();
   }, []);
-
-  const handleSave = async () => {
-    try {
-      // Cập nhật thông tin người dùng và mật khẩu nếu có
-      const updatedUser = {
-        ...editedUser,
-        password: password || user.password, // Chỉ cập nhật mật khẩu nếu người dùng thay đổi
-      };
-      await updateUser(user.id, updatedUser);
-      setUser(updatedUser); // Cập nhật thông tin hiển thị
-      setIsEditing(false); // Tắt chế độ sửa
-    } catch (error) {
-      console.error("Update user error:", error);
-    }
-  };
-
-  const pickImage = async () => {
-    // Yêu cầu quyền truy cập thư viện ảnh
-    let result = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (result.granted === false) {
-      alert("Permission to access gallery is required!");
-      return;
-    }
-
-    // Chọn ảnh từ thư viện
-    let pickerResult = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!pickerResult.canceled) {
-      setEditedUser({ ...editedUser, avatar: pickerResult.uri });
-    }
-  };
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>User Profile</Text>
-
-      {user ? (
-        <View style={styles.profileContainer}>
-          {/* Hiển thị Avatar hoặc ảnh mặc định */}
-          <TouchableOpacity onPress={isEditing ? pickImage : null}>
-            <Image
-              source={
-                editedUser.avatar
-                  ? { uri: editedUser.avatar }
-                  : require("../assets/images/chicken.png")
-              }
-              style={styles.avatar}
-            />
-            {isEditing && (
-              <Text style={styles.changeAvatarText}>Change Avatar</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Hiển thị thông tin người dùng có thể chỉnh sửa */}
-          <View style={styles.userInfoContainer}>
-            <TextInput
-              style={styles.userInfoInput}
-              value={editedUser.name}
-              editable={isEditing}
-              onChangeText={(text) =>
-                setEditedUser({ ...editedUser, name: text })
-              }
-            />
-            {isEditing && (
+    <View style={tw`flex-1 bg-white items-center justify-center px-6 py-10`}>
+      <Text style={tw`text-4xl font-bold text-blue-700 mb-8`}>Hồ sơ</Text>
+      {userProfile ? (
+        <>
+          <Image
+            source={{ uri: userProfile.avatar }}
+            style={tw`w-40 h-40 rounded-full shadow-xl mb-6`}
+          />
+          <Text style={tw`text-lg font-bold text-indigo-700`}>
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+            }).format(userProfile.wallet)}
+          </Text>
+          <View style={tw`w-full mb-4`}>
+            <Text style={tw`text-lg text-gray-600 mb-2`}>Tên</Text>
+            <View style={tw`bg-gray-100 p-2.7 rounded-lg border border-gray-100 shadow-sm`}>
               <TextInput
-                style={styles.userInfoInput}
-                placeholder="New Password"
-                secureTextEntry
-                onChangeText={(text) => setPassword(text)}
+                style={tw`text-lg text-gray-700`}
+                value={userProfile.name}
+                editable={false}
               />
-            )}
+            </View>
           </View>
-
-          {/* Hiển thị email và ví (không chỉnh sửa) */}
-          <View style={styles.userInfoContainer}>
-            <Text style={styles.userInfoLabel}>Email:</Text>
-            <Text style={styles.userInfoText}>{user.email}</Text>
-
-            <Text style={styles.userInfoLabel}>Wallet:</Text>
-            <Text style={styles.userInfoText}>{user.wallet}</Text>
+          <View style={tw`w-full mb-6`}>
+            <Text style={tw`text-lg text-gray-600 mb-2`}>Email</Text>
+            <View style={tw`bg-gray-100 p-2.7 rounded-lg border border-gray-100 shadow-sm`}>
+              <TextInput
+                style={tw`text-lg text-gray-700`}
+                value={userProfile.email}
+                editable={false}
+              />
+            </View>
           </View>
-
-          {isEditing ? (
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveText}>Save</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => setIsEditing(true)}
-            >
-              <Text style={styles.editText}>Edit Profile</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        </>
       ) : (
-        <Text>Loading user data...</Text>
+        <Text style={tw`text-lg text-gray-500`}>Loading...</Text>
       )}
-
       <TouchableOpacity
-        style={styles.logoutButton}
+        style={tw`px-6 py-3 bg-indigo-500 rounded-lg shadow-lg mb-6`}
         onPress={() => logout(navigation)}
       >
-        <Text style={styles.logoutText}>Logout</Text>
+        <Text style={tw`text-white text-lg font-semibold`}>Logout</Text>
       </TouchableOpacity>
-    </View>
+</View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F0F8FF",
-    padding: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
-    letterSpacing: 0.5,
-  },
-  profileContainer: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 25,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-    marginBottom: 30,
-  },
-  avatar: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    marginBottom: 20,
-    borderWidth: 4,
-    borderColor: "#3498db",
-    shadowColor: "#3498db",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-  },
-  changeAvatarText: {
-    color: "#3498db",
-    fontSize: 14,
-    marginTop: 10,
-  },
-  userInfoContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-    width: "100%",
-  },
-  userInfoInput: {
-    fontSize: 18,
-    color: "#333",
-    marginBottom: 15,
-    borderBottomWidth: 2,
-    borderBottomColor: "#3498db",
-    width: "100%",
-    textAlign: "center",
-    padding: 5,
-  },
-  userInfoLabel: {
-    fontSize: 16,
-    color: "#555",
-    marginBottom: 5,
-  },
-  userInfoText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 15,
-  },
-  editButton: {
-    backgroundColor: "#3498db",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 30,
-    marginBottom: 20,
-    width: "80%",
-    alignItems: "center",
-    shadowColor: "#3498db",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  editText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  saveButton: {
-    backgroundColor: "#2ecc71",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 30,
-    marginBottom: 20,
-    width: "80%",
-    alignItems: "center",
-    shadowColor: "#2ecc71",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  saveText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  logoutButton: {
-    width: "80%",
-    backgroundColor: "#FF6347",
-    paddingVertical: 14,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#FF6347",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  logoutText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-});
-
 export default Profile;
