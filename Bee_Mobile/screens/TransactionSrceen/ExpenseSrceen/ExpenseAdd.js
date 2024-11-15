@@ -69,7 +69,6 @@ const ExpenseAdd = () => {
     const cleanedDescription = description.trim();
     const numericAmount = parseFloat(amount.replace(/,/g, ''));
     if (!cleanedDescription || !selectedCategory || isNaN(numericAmount) || !userId) {
-      Alert.alert("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
     const newExpense = {
@@ -86,10 +85,8 @@ const ExpenseAdd = () => {
       await addTransaction(newExpense);
       setAmount('');
       setDescription('');
-      setSelectedCategory(null);
-      setSelectedDate(moment().format('DD/MM/YYYY'));
+      setSelectedCategory(null);setSelectedDate(moment().format('DD/MM/YYYY'));
       navigation.navigate('ExpenseList', { refresh: true });
-     
       // Alert.alert('Thêm chi tiêu thành công.');
     } catch (error) {
       console.error('Lỗi thêm chi tiêu:', error);
@@ -108,7 +105,7 @@ const ExpenseAdd = () => {
   };
 
   if (isLoading) {
-    return <ActivityIndicator size={40} color="#0000ff" />;
+    return <ActivityIndicator size="large" color="#0000ff" />;
   }
   return (
     <ScrollView>
@@ -158,8 +155,7 @@ const ExpenseAdd = () => {
               maxDate={moment().toDate()}
               previousTitle={<Text style={{ color: '#5A5DD1', fontSize: 20, }}>◀</Text>}
               nextTitle={<Text style={{ color: '#5A5DD1', fontSize: 20 }}>▶</Text>}
-              weekdays={['CN', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7']}
-              months={[
+              weekdays={['CN', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7']}months={[
                 'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
                 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
               ]}
@@ -302,7 +298,7 @@ const ExpenseAdd = () => {
       <TouchableOpacity
         style={[
           tw`p-4 rounded-lg`,
-          isLoading ? tw`bg-indigo-200` : tw`bg-indigo-600` // Thay đổi màu khi đang xử lý
+          isLoading ? tw`bg-indigo-200` : tw`bg-indigo-600`
         ]}
         onPress={handleAddExpense}
         disabled={isLoading}
@@ -311,7 +307,7 @@ const ExpenseAdd = () => {
           <ActivityIndicator size="small" color="#fff" /> 
         ) : (
           <Text style={tw`text-white font-bold text-center`}>
-            {isButtonDisabled ? 'Đang thêm nha...' : 'Thêm chi tiêu'}
+            {isButtonDisabled ? 'Đang thêm...' : 'Thêm chi tiêu'}
           </Text>
         )}
       </TouchableOpacity>

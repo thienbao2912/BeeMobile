@@ -130,14 +130,21 @@ const getAllUsers = async () => {
 
 const getUserProfile = async () => {
     try {
-        const userId = await getToken('userId'); 
-        const res = await request({
-            method: "GET",
-            path: `/api/auth/get-profile/${userId}`
+        const userId = await getToken('userId');
+        const token = await SecureStore.getItemAsync('token');
+        const response = await fetch(`http://172.16.29.137:4000/api/auth/get-profile/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
-        return res;
+        if (!response.ok) {
+            throw new Error(`Network response was not ok, status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
     } catch (error) {
-        console.error('Get profile error:', error.response || error.message);
+        console.error('Get profile error:', error.message);
         throw error;
     }
 };

@@ -57,7 +57,7 @@ export default function ExpenseDetail({ route, navigation }) {
   return (
     <View style={tw`flex-1 p-5 bg-gray-100`}>
       {loading ? (
-        <ActivityIndicator size={40} color="#A57EF4" />
+        <ActivityIndicator size="large" color="#A57EF4" />
       ) : (
         <>
           <View style={tw`bg-white rounded-lg shadow-md mb-5 p-5`}>
@@ -81,8 +81,7 @@ export default function ExpenseDetail({ route, navigation }) {
           <View style={tw`bg-white rounded-lg shadow-md mb-5 p-5`}>
             <View style={tw`mb-4`}>
               <View style={tw`flex-row items-center mb-3`}>
-                <View style={tw`bg-violet-200 p-2 rounded-lg mr-3`}>
-                  <Ionicons name="cash-outline" size={24} style={tw`text-violet-500`} />
+                <View style={tw`bg-violet-200 p-2 rounded-lg mr-3`}><Ionicons name="cash-outline" size={24} style={tw`text-violet-500`} />
                 </View>
                 <Text style={[tw`text-lg font-bold`, transaction.type === 'expense' ? tw`text-red-500` : tw`text-green-500`]}>
                   {transaction.type === 'expense' ? '-' : '+'} {Math.abs(transaction.amount).toLocaleString()} đ

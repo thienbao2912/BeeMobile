@@ -101,8 +101,7 @@ static async edit(req, res) {
 
     if (type === 'expense') {
       user.wallet -= newAmount;
-    } else if (type === 'income') {
-      user.wallet += newAmount;
+    } else if (type === 'income') {user.wallet += newAmount;
     }
 
     await user.save();

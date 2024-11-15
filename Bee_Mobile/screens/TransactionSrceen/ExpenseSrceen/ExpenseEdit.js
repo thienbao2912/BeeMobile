@@ -90,8 +90,7 @@ const ExpenseEdit = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDate, setSelectedDate] = useState(moment().format('DD/MM/YYYY'));
-  const [tempSelectedDate, setTempSelectedDate] = useState(selectedDate); 
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [tempSelectedDate, setTempSelectedDate] = useState(selectedDate);const [isModalVisible, setModalVisible] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true); // New loading state for categories
   const [isButtonDisabled, setButtonDisabled] = useState(false);
 
@@ -183,8 +182,7 @@ const ExpenseEdit = () => {
   const openDatePicker = () => setModalVisible(true);
 
   const confirmDateSelection = (date) => {
-    setSelectedDate(moment(date).format('DD/MM/YYYY'));
-    setModalVisible(false);
+    setSelectedDate(moment(date).format('DD/MM/YYYY'));setModalVisible(false);
   };
 
   const cancelDateSelection = () => {
@@ -192,7 +190,7 @@ const ExpenseEdit = () => {
     setModalVisible(false);
   };
   if (loading || isLoadingCategories) {
-    return <ActivityIndicator size={40} color="#0000ff" />;
+    return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
   return (
@@ -259,8 +257,7 @@ const ExpenseEdit = () => {
         <TouchableOpacity
           style={tw`bg-gray-300 p-2 rounded-lg flex-1 mr-2`}
           onPress={cancelDateSelection}
-        >
-          <Text style={tw`text-center`}>Hủy</Text>
+        ><Text style={tw`text-center`}>Hủy</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={tw`bg-indigo-800 p-2 rounded-lg flex-1`}

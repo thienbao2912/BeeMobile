@@ -84,8 +84,7 @@ const IncomeAdd = () => {
     try {
       // setLoading(true);
       setButtonDisabled(true);
-      await addTransaction(newIncome);
-      setAmount('');
+      await addTransaction(newIncome);setAmount('');
       setDescription('');
       setSelectedCategory(null);
       setSelectedDate(moment().format('DD/MM/YYYY'));
@@ -108,7 +107,7 @@ const IncomeAdd = () => {
   };
 
   if (isLoading) {
-    return <ActivityIndicator size={40} color="#0000ff" />;
+    return <ActivityIndicator size="large" color="#0000ff" />;
   }
   return (
     <ScrollView>
@@ -157,8 +156,7 @@ const IncomeAdd = () => {
               selectedDate={moment(tempSelectedDate, 'DD/MM/YYYY')}
               maxDate={moment().toDate()}
               previousTitle={<Text style={{ color: '#5A5DD1', fontSize: 20, }}>◀</Text>}
-              nextTitle={<Text style={{ color: '#5A5DD1', fontSize: 20 }}>▶</Text>}
-              weekdays={['CN', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7']}
+              nextTitle={<Text style={{ color: '#5A5DD1', fontSize: 20 }}>▶</Text>}weekdays={['CN', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7']}
               months={[
                 'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
                 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
@@ -201,7 +199,7 @@ const IncomeAdd = () => {
       </View>
       <View style={tw`flex-row items-center border-b border-violet-100 p-2 mb-4`}>
         <Ionicons name="list" size={24} color="#D3D3D3" />
-        <TouchableOpacity style={tw`flex-1 ml-2`} onPress={() => Alert.alert('Chọn danh mục')}>
+        <TouchableOpacity style={tw`flex-1 ml-2`}>
           <View style={tw`flex-row items-center`}>
             <Text style={tw`text-lg`}>
               {selectedCategory ? categories.find(cat => cat._id === selectedCategory)?.name : 'Chọn danh mục'}
@@ -210,7 +208,7 @@ const IncomeAdd = () => {
         </TouchableOpacity>
       </View>
       {isLoadingCategories ? (
-  <ActivityIndicator size={40} color="#5A5DD1" />
+  <ActivityIndicator size="large" color="#5A5DD1" />
 ) : categories.length > 0 ? (
   categories.reduce((rows, category, index) => {
     if (index % 3 === 0) {
@@ -230,8 +228,7 @@ const IncomeAdd = () => {
               style={tw`w-10 h-10 mb-2`}
               resizeMode="contain"
             />
-            <Text style={tw`text-center`}>
-              {category.name.length > 20 ? category.name.substring(0, 20) + '...' : category.name}
+            <Text style={tw`text-center`}>{category.name.length > 20 ? category.name.substring(0, 20) + '...' : category.name}
             </Text>
             {selectedCategory === category._id && (
               <Ionicons name="checkmark-circle" size={24} color="#8270DB" style={tw`absolute top-0 right-0`} />
@@ -301,8 +298,7 @@ const IncomeAdd = () => {
         onPress={handleAddIncome}
         disabled={isLoading}
       >
-        {isLoading ? (
-          <ActivityIndicator size="small" color="#fff" /> // Hiển thị biểu tượng loading
+        {isLoading ? (<ActivityIndicator size="small" color="#fff" /> // Hiển thị biểu tượng loading
         ) : (
           <Text style={tw`text-white font-bold text-center`}>
             {isButtonDisabled ? 'Đang thêm nha...' : 'Thêm thu nhập'}
