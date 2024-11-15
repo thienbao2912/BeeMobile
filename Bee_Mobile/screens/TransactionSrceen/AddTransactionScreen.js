@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
-<<<<<<< HEAD
-import { ScrollView, Platform } from 'react-native';
-=======
 import { ScrollView, View, Platform } from 'react-native';
->>>>>>> 495a195269f8c94f0bcefdf0eff475287343fb5c
 import SegmentedControl from '@react-native-segmented-control/segmented-control'; 
 import ExpenseAdd from './ExpenseSrceen/ExpenseAdd';
 import IncomeAdd from './IncomeSrceen/IncomeAdd';
