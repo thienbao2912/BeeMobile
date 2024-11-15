@@ -108,7 +108,7 @@ const IncomeAdd = () => {
   };
 
   if (isLoading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return <ActivityIndicator size={40} color="#0000ff" />;
   }
   return (
     <ScrollView>
@@ -210,7 +210,7 @@ const IncomeAdd = () => {
         </TouchableOpacity>
       </View>
       {isLoadingCategories ? (
-  <ActivityIndicator size="large" color="#5A5DD1" />
+  <ActivityIndicator size={40} color="#5A5DD1" />
 ) : categories.length > 0 ? (
   categories.reduce((rows, category, index) => {
     if (index % 3 === 0) {

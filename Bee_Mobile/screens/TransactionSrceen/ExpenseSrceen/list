@@ -95,7 +95,7 @@ export default function ExpenseList({ route, navigation }) {
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return <ActivityIndicator size={40} color="#0000ff" />;
   }
 
   return (

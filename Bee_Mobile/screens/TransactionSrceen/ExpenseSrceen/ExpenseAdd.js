@@ -89,6 +89,7 @@ const ExpenseAdd = () => {
       setSelectedCategory(null);
       setSelectedDate(moment().format('DD/MM/YYYY'));
       navigation.navigate('ExpenseList', { refresh: true });
+     
       // Alert.alert('Thêm chi tiêu thành công.');
     } catch (error) {
       console.error('Lỗi thêm chi tiêu:', error);
@@ -107,7 +108,7 @@ const ExpenseAdd = () => {
   };
 
   if (isLoading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return <ActivityIndicator size={40} color="#0000ff" />;
   }
   return (
     <ScrollView>
@@ -198,6 +199,7 @@ const ExpenseAdd = () => {
           multiline
         />
       </View>
+      {/* Nút dấu "+" để thêm danh mục mới */}
       <View style={tw`flex-row items-center border-b border-violet-100 p-2 mb-4`}>
         <Ionicons name="list" size={24} color="#D3D3D3" />
         <TouchableOpacity style={tw`flex-1 ml-2`} onPress={() => Alert.alert('Chọn danh mục')}>
@@ -207,9 +209,15 @@ const ExpenseAdd = () => {
             </Text>
           </View>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`p-2 bg-indigo-600 rounded-full`}
+          onPress={() => navigation.navigate('AddCategoryScreen')}
+        >
+          <Ionicons name="add" size={24} color="white" />
+        </TouchableOpacity>
       </View>
       {isLoadingCategories ? (
-  <ActivityIndicator size="large" color="#5A5DD1" />
+  <ActivityIndicator size={40} color="#5A5DD1" />
 ) : categories.length > 0 ? (
   categories.reduce((rows, category, index) => {
     if (index % 3 === 0) {
@@ -281,6 +289,7 @@ const ExpenseAdd = () => {
               )}
             </TouchableOpacity>
           )}
+         
         </View>
       );
     }

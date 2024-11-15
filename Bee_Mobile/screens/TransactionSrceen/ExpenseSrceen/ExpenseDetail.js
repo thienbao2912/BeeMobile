@@ -57,7 +57,7 @@ export default function ExpenseDetail({ route, navigation }) {
   return (
     <View style={tw`flex-1 p-5 bg-gray-100`}>
       {loading ? (
-        <ActivityIndicator size="large" color="#A57EF4" />
+        <ActivityIndicator size={40} color="#A57EF4" />
       ) : (
         <>
           <View style={tw`bg-white rounded-lg shadow-md mb-5 p-5`}>

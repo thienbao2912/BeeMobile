@@ -12,7 +12,7 @@ export default function TransactionDetail({ route, navigation }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
-    console.log('Transaction Detail:', transaction);
+    console.log('Transaction D\etail:', transaction);
   }, [transaction]);
 
   const handleEditTransaction = () => {
