@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store'; // Import SecureStore để lấy token
 
-const API_URL = 'http://172.16.29.137:4000/api';
+const API_URL = 'http://172.16.27.190:4000/api';
 
 // Hàm lấy tất cả giao dịch
 export const fetchAllTransactions = async () => {
@@ -16,6 +16,41 @@ export const fetchAllTransactions = async () => {
     throw error; 
   }
 };
+
+
+
+export const getCategoryById = async (categoryId) => {
+  try {
+    // Lấy token từ SecureStore
+    const token = await SecureStore.getItemAsync('token');
+    // console.log('Token:', token); 
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_URL}/v2/categories/${categoryId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json(); // Lấy dữ liệu lỗi từ phản hồi
+      console.error('Server Response:', errorData); // Ghi lại phản hồi từ server
+      throw new Error(errorData.message || 'Failed to fetch category');
+    }
+
+    const data = await response.json();
+    return data; // Trả về dữ liệu danh mục đã lấy
+  } catch (error) {
+    console.error('Error fetching category by ID:', error);
+    throw error; // Ném lại lỗi sau khi ghi
+  }
+};
+
 
 // Hàm lấy tất cả danh mục
 export const fetchAllCategories = async () => {

@@ -1,7 +1,7 @@
 const Category = require('../models/Category')
 const Transaction = require("../models/Transaction");
 class CategoryController {
-    static async getAll(req, res) {
+    static async getAllCategories(req, res) {
         try {
             let userId = req.user.id
             let userRole = req.user.role
@@ -34,7 +34,7 @@ class CategoryController {
     }
     
     
-    static async add(req, res) {
+    static async addCategory(req, res) {
         try {
             let userId = req.user.id
             let { name, image, description, type } = req.body
@@ -47,7 +47,7 @@ class CategoryController {
             })
         }
     }
-    static async getById(req, res) {
+    static async getCategoryById(req, res) {
         try {
             let userId = req.user.id
             let id = req.params.id
@@ -60,7 +60,7 @@ class CategoryController {
             })
         }
     }
-    static async edit(req, res) {
+    static async editCategory(req, res) {
         try {
             let userId = req.user.id
             let id = req.params.id
