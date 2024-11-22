@@ -9,11 +9,9 @@ import {
   Alert,
 } from "react-native";
 import Svg, { Ellipse } from "react-native-svg";
-import { ProgressBar } from "react-native-paper";
 import tw from "twrnc";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import * as SecureStore from "expo-secure-store";
-import { fetchCategoryImage } from "../../services/Category";
 import {
   fetchAllSavingGoalsByUser,
   deleteSavingGoal,
@@ -31,8 +29,7 @@ export default function SavingGoalScreen({ navigation }) {
 
         const goalsWithImages = await Promise.all(
           goals.map(async (goal) => {
-            const imageUrl = await fetchCategoryImage(goal.categoryId);
-            return { ...goal, categoryImage: imageUrl };
+            return { ...goal };
           })
         );
 
@@ -133,7 +130,7 @@ export default function SavingGoalScreen({ navigation }) {
       <View style={tw`w-full mt-3 pl-2 pr-2`}>
         {savingGoals.map((goal, index) => {
           const progress = goal.currentAmount / goal.targetAmount;
-          const progressPercentage = Math.floor(progress * 100);
+          const progressPercentage = Math.floor(progress * 100 || 0);
 
           let progressBarColor = "red";
           if (progress >= 0.8) {
@@ -163,12 +160,7 @@ export default function SavingGoalScreen({ navigation }) {
               style={tw`border rounded-lg p-4 mb-4 bg-white`}
             >
               <View style={tw`flex-row items-center justify-between`}>
-                <Image
-                  source={{
-                    uri: goal.categoryId?.image || "/path/to/default/image.png",
-                  }}
-                  style={tw`w-12 h-12 rounded-full mr-4`}
-                />
+                <Image style={tw`w-12 h-12 rounded-full mr-4`} />
                 <View style={tw`flex-1`}>
                   <Text style={tw`font-bold text-lg`}>{goal.name}</Text>
                   <Text style={tw`text-gray-500`}>
@@ -181,11 +173,25 @@ export default function SavingGoalScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
 
-              <ProgressBar
-                progress={progress}
-                color={progressBarColor}
-                style={tw`h-2 rounded-full mt-2`}
-              />
+              {/* Custom Progress Bar */}
+              <View style={tw`mt-3`}>
+                <View
+                  style={[
+                    tw`h-2 rounded-full`,
+                    { backgroundColor: "#e0e0e0" }, // Background
+                  ]}
+                >
+                  <View
+                    style={[
+                      tw`h-full rounded-full`,
+                      {
+                        width: `${Math.min(progressPercentage, 100)}%`, // Giới hạn tiến độ tối đa là 100%
+                        backgroundColor: progressBarColor,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
 
               <View style={tw`flex-row justify-between mt-1`}>
                 <Text

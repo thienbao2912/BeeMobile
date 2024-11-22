@@ -8,7 +8,7 @@ import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 
 import BudgetScreen from "../screens/BudgetScreen";
 
-
+import CategoriesStackScreen from "./CategoriesStack";
 import Home from "../screens/HomeSreen/Home";
 const Tab = createBottomTabNavigator();
 
@@ -35,6 +35,10 @@ function TabNavigator() {
           iconName = "user";
           IconComponent = FontAwesomeIcon;
         }
+        //  else if(route.name === "danh mục") {
+        //   iconName = 'category';
+        //   IconComponent = FontAwesomeIcon;
+        // }
 
         return {
           tabBarIcon: ({ focused, color, size }) => (
@@ -66,6 +70,7 @@ function TabNavigator() {
       />
       <Tab.Screen name="Ngân sách" component={BudgetScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
+      {/* <Tab.Screen name="danh mục" component={CategoriesStackScreen} /> */}
     </Tab.Navigator>
   );
 }

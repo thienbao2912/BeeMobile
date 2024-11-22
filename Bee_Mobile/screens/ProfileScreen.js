@@ -1,7 +1,9 @@
-import React from "react";
-import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Text, View, TouchableOpacity, Image, TextInput } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useNavigation } from "@react-navigation/native";
+import { getUserProfile } from "../services/Auth";
+import tw from "twrnc";
 
 const logout = async (navigation) => {
   try {
@@ -9,49 +11,75 @@ const logout = async (navigation) => {
     await SecureStore.deleteItemAsync("userId");
     await SecureStore.deleteItemAsync("userName");
     await SecureStore.deleteItemAsync("userRole");
-
+    await SecureStore.deleteItemAsync("userAvatar");
+    await SecureStore.deleteItemAsync("userWallet");
     navigation.navigate("Login");
   } catch (error) {
     console.error("Logout error:", error);
   }
 };
-
 function Profile() {
+  const [userName, setUserName] = useState("");
+  const [userProfile, setUserProfile] = useState(null);
   const navigation = useNavigation();
-
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const profile = await getUserProfile();
+        setUserProfile(profile);
+        setUserName(profile?.name || "Guest");
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+    fetchUserData();
+  }, []);
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Home Screen</Text>
-
+    <View style={tw`flex-1 bg-white items-center justify-center px-6 py-10`}>
+      <Text style={tw`text-4xl font-bold text-blue-700 mb-8`}>Hồ sơ</Text>
+      {userProfile ? (
+        <>
+          <Image
+            source={{ uri: userProfile.avatar }}
+            style={tw`w-40 h-40 rounded-full shadow-xl mb-6`}
+          />
+          <Text style={tw`text-lg font-bold text-indigo-700`}>
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+            }).format(userProfile.wallet)}
+          </Text>
+          <View style={tw`w-full mb-4`}>
+            <Text style={tw`text-lg text-gray-600 mb-2`}>Tên</Text>
+            <View style={tw`bg-gray-100 p-2.7 rounded-lg border border-gray-100 shadow-sm`}>
+              <TextInput
+                style={tw`text-lg text-gray-700`}
+                value={userProfile.name}
+                editable={false}
+              />
+            </View>
+          </View>
+          <View style={tw`w-full mb-6`}>
+            <Text style={tw`text-lg text-gray-600 mb-2`}>Email</Text>
+            <View style={tw`bg-gray-100 p-2.7 rounded-lg border border-gray-100 shadow-sm`}>
+              <TextInput
+                style={tw`text-lg text-gray-700`}
+                value={userProfile.email}
+                editable={false}
+              />
+            </View>
+          </View>
+        </>
+      ) : (
+        <Text style={tw`text-lg text-gray-500`}>Loading...</Text>
+      )}
       <TouchableOpacity
-        style={styles.logoutButton}
+        style={tw`px-6 py-3 bg-indigo-500 rounded-lg shadow-lg mb-6`}
         onPress={() => logout(navigation)}
       >
-        <Text style={styles.logoutText}>Logout</Text>
+        <Text style={tw`text-white text-lg font-semibold`}>Logout</Text>
       </TouchableOpacity>
-    </View>
+</View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-  },
-  logoutButton: {
-    padding: 10,
-    backgroundColor: "#FF6347",
-    borderRadius: 5,
-  },
-  logoutText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-});
-
 export default Profile;

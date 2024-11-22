@@ -12,14 +12,51 @@ export const fetchAllTransactions = async () => {
     return data;
   } catch (error) {
     console.error('Error fetching transactions:', error);
-    throw error;
+    throw error; 
   }
 };
 
+
+
+export const getCategoryById = async (categoryId) => {
+  try {
+    // Lấy token từ SecureStore
+    const token = await SecureStore.getItemAsync('token');
+    // console.log('Token:', token); 
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_URL}/v2/categories/${categoryId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json(); // Lấy dữ liệu lỗi từ phản hồi
+      console.error('Server Response:', errorData); // Ghi lại phản hồi từ server
+      throw new Error(errorData.message || 'Failed to fetch category');
+    }
+
+    const data = await response.json();
+    return data; // Trả về dữ liệu danh mục đã lấy
+  } catch (error) {
+    console.error('Error fetching category by ID:', error);
+    throw error; // Ném lại lỗi sau khi ghi
+  }
+};
+
+
+// Hàm lấy tất cả danh mục
 export const fetchAllCategories = async () => {
   try {
-    const token = await SecureStore.getItemAsync('token');
-    console.log('Token:', token);
+    // Lấy token từ SecureStore
+    const token = await SecureStore.getItemAsync('token'); // Lấy token từ SecureStore
+    // console.log('Token:', token); 
     if (!token) {
       throw new Error('No authentication token found');
     }
@@ -32,7 +69,7 @@ export const fetchAllCategories = async () => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json(); 
       console.error('Server Response:', errorData);
       throw new Error(errorData.message || 'Failed to fetch categories');
     }
@@ -40,7 +77,7 @@ export const fetchAllCategories = async () => {
     return data;
   } catch (error) {
     console.error('Error fetching categories:', error);
-    throw error;
+    throw error; 
   }
 };
 
@@ -52,12 +89,12 @@ export const addTransaction = async (transactionData) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(transactionData),
+      body: JSON.stringify(transactionData), 
     });
     return await response.json();
   } catch (error) {
     console.error('Error adding transaction:', error);
-    throw error;
+    throw error; 
   }
 };
 
@@ -81,26 +118,63 @@ export const deleteTransaction = async (transactionId) => {
   }
 };
 
-// Hàm lấy một giao dịch theo ID
-// export const fetchTransactionById = async (transactionId) => {
-//   try {
-//     const response = await fetch(`${API_URL}/transactions/${transactionId}`, {
-//       method: 'GET',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//     });
+// Hàm lấy giao dịch theo ID
+export const fetchTransactionById = async (transactionId, userId) => {
+  try {
+    const response = await fetch(`${API_URL}/transactions/${transactionId}?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-//     if (!response.ok) {
-//       const errorData = await response.json();
-//       console.error('Server Response:', errorData);
-//       throw new Error(errorData.message || 'Failed to fetch transaction');
-//     }
+    if (!response.ok) {
+      const text = await response.text();  // Lấy phản hồi dưới dạng text
+      console.error('Server Error Response:', text);
 
-//     const data = await response.json();
-//     return data; // Trả về giao dịch đã lấy
-//   } catch (error) {
-//     console.error('Error fetching transaction:', error);
-//     throw error; // Ném lại lỗi cho việc xử lý sau này
-//   }
-// };
+      try {
+        const errorData = JSON.parse(text);  // Thử chuyển đổi sang JSON
+        throw new Error(errorData.message || 'Failed to fetch transaction');
+      } catch (parseError) {
+        throw new Error('Server returned non-JSON response');
+      }
+    }
+
+    const data = await response.json();  // Chuyển đổi thành JSON nếu có thể
+    return data;
+  } catch (error) {
+    console.error('Error fetching transaction:', error);
+    throw error;
+  }
+};
+
+// Hàm chỉnh sửa giao dịch
+export const editTransaction = async (transactionId, updatedData) => {
+  try {
+    const response = await fetch(`${API_URL}/transactions/${transactionId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedData),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();  // Lấy phản hồi dưới dạng text
+      console.error('Server Error Response:', text);
+
+      try {
+        const errorData = JSON.parse(text);  // Thử chuyển đổi sang JSON
+        throw new Error(errorData.message || 'Failed to update transaction');
+      } catch (parseError) {
+        throw new Error('Server returned non-JSON response');
+      }
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+    throw error;
+  }
+};

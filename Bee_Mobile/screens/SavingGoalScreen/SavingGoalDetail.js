@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import tw from 'twrnc';
-import { ProgressBar } from "react-native-paper";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as SecureStore from 'expo-secure-store';
 
@@ -83,7 +82,17 @@ export default function SavingGoalDetail({ route, navigation }) {
             </Text>
           </View>
         </View>
-        <ProgressBar progress={progress} color={progress === 1 ? "green" : "blue"} style={tw`h-2 rounded-full mt-2`} />
+
+        {/* Custom Progress Bar */}
+        <View style={tw`w-full bg-gray-300 h-2 rounded-full mt-2`}>
+          <View
+            style={[
+              tw`h-2 rounded-full`,
+              { width: `${progress * 100}%`, backgroundColor: progress === 1 ? 'green' : 'blue' },
+            ]}
+          />
+        </View>
+
         <Text style={tw`${progress === 1 ? 'text-green-500' : 'text-blue-500'} font-bold mt-2`}>
           {progress === 1 ? 'Hoàn thành' : `Đã hoàn thành ${Math.floor(progress * 100)}%`}
         </Text>
