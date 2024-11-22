@@ -39,6 +39,8 @@ const Home = () => {
   const [wallet, setWallet] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
+  const [isVisible, setIsVisible] = useState(true);
+  
 
   const loadUserData = useCallback(async () => {
     setLoading(true);
@@ -77,7 +79,8 @@ const Home = () => {
   const totalExpense = transactions
     .filter((transaction) => transaction.type === "expense")
     .reduce((sum, transaction) => sum + transaction.amount, 0);
-
+  const totalSaving = savingGoals
+    .reduce((sum, savingGoals) => sum + savingGoals.currentAmount, 0);
   const navigateToDetail = (transaction) => {
     navigation.navigate("TransactionDetail", { transaction });
   };
@@ -87,32 +90,48 @@ const Home = () => {
   }
 
   return (
-    <ScrollView style={tw`mt-10 flex-1 bg-gray-100`}>
+    <View style={tw`mt-10 flex-1 bg-gray-100`}>
       <View style={tw`bg-purple-200 p-5 flex-row justify-between items-center`}>
         <Text style={tw`text-2xl font-bold text-black`}>
-          {wallet.toLocaleString()}đ
+          {isVisible ? `${wallet.toLocaleString()}đ` : '*** đ'}
         </Text>
-        <MaterialIcons name="notifications" size={28} color="black" />
+        <TouchableOpacity onPress={() => setIsVisible(!isVisible)}>
+          <MaterialIcons name={isVisible ? 'visibility' : 'visibility-off'} size={28} color="black" />
+        </TouchableOpacity>
       </View>
 
       <View style={tw`p-5`}>
         <Card title="Thống kê">
           <View style={tw`flex-row justify-between`}>
             <View style={tw`flex-1 items-center`}>
-              <Text style={tw`text-lg font-bold text-green-600`}>
-                {totalIncome.toLocaleString()}đ
+              <Text style={tw`text-sm font-bold text-green-600`}>
+                {isVisible
+                  ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalIncome)
+                  : '***'}
               </Text>
-              <Text style={tw`text-base text-gray-600`}>Thu nhập</Text>
+              <Text style={tw`text-xs text-gray-600`}>Thu nhập</Text>
             </View>
             <View style={tw`flex-1 items-center`}>
-              <Text style={tw`text-lg font-bold text-red-600`}>
-                {totalExpense.toLocaleString()}đ
+              <Text style={tw`text-sm font-bold text-red-600`}>
+                {isVisible
+                  ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalExpense)
+                  : '***'}
               </Text>
-              <Text style={tw`text-base text-gray-600`}>Chi tiêu</Text>
+              <Text style={tw`text-xs text-gray-600`}>Chi tiêu</Text>
+            </View>
+            <View style={tw`flex-1 items-center`}>
+              <Text style={tw`text-sm font-bold text-blue-600`}>
+                {isVisible
+                  ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalSaving)
+                  : '***'}
+              </Text>
+              <Text style={tw`text-xs text-gray-600`}>Tiết kiệm</Text>
             </View>
           </View>
         </Card>
-        
+
+
+
         <Card title="Mục tiêu tiết kiệm">
           <FlatList
             data={savingGoals.reverse()}
@@ -140,7 +159,7 @@ const Home = () => {
             ListEmptyComponent={<Text style={tw`text-center text-gray-500 mt-5`}>Chưa có mục tiêu tiết kiệm</Text>}
           />
         </Card>
-        
+
         <Card title="Giao dịch">
           <FlatList
             data={transactions.slice(0, 3)}
@@ -188,7 +207,7 @@ const Home = () => {
           </TouchableOpacity>
         </Card>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 

@@ -81,7 +81,7 @@ export default function ExpenseDetail({ route, navigation }) {
           <View style={tw`bg-white rounded-lg shadow-md mb-5 p-5`}>
             <View style={tw`mb-4`}>
               <View style={tw`flex-row items-center mb-3`}>
-                <View style={tw`bg-violet-200 p-2 rounded-lg mr-3`}><Ionicons name="cash-outline" size={24} style={tw`text-violet-500`} />
+                <View style={tw`bg-indigo-200 p-2 rounded-lg mr-3`}><Ionicons name="cash-outline" size={24} style={tw`text-indigo-500`} />
                 </View>
                 <Text style={[tw`text-lg font-bold`, transaction.type === 'expense' ? tw`text-red-500` : tw`text-green-500`]}>
                   {transaction.type === 'expense' ? '-' : '+'} {Math.abs(transaction.amount).toLocaleString()} đ
@@ -89,8 +89,8 @@ export default function ExpenseDetail({ route, navigation }) {
               </View>
               
               <View style={tw`flex-row items-start mb-3`}>
-                <View style={tw`bg-violet-200 p-2 rounded-lg mr-3`}>
-                  <Ionicons name="clipboard-outline" size={24} style={tw`text-violet-500`} />
+                <View style={tw`bg-indigo-200 p-2 rounded-lg mr-3`}>
+                  <Ionicons name="clipboard-outline" size={24} style={tw`text-indigo-500`} />
                 </View>
                 <View style={tw`border-2 border-indigo-200 rounded-lg p-4 bg-gray-50 flex-1`}>
                   <Text style={tw`text-gray-700`}>{transaction.description}</Text>
@@ -98,8 +98,8 @@ export default function ExpenseDetail({ route, navigation }) {
               </View>
 
               <View style={tw`flex-row items-center`}>
-                <View style={tw`bg-violet-200 p-2 rounded-lg mr-3`}>
-                  <Ionicons name="calendar-outline" size={24} style={tw`text-violet-500`} />
+                <View style={tw`bg-indigo-200 p-2 rounded-lg mr-3`}>
+                  <Ionicons name="calendar-outline" size={24} style={tw`text-indigo-500`} />
                 </View>
                 <Text style={tw`text-gray-700`}>{formatDate(transaction.date)}</Text>
               </View>

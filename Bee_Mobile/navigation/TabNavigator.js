@@ -5,9 +5,9 @@ import ProfileScreen from '../screens/ProfileScreen';
 import TransactionStackScreen from './TransactionStack'
 import SavingGoalStackScreen from './SavingGoalStackScreen';
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
-
+import AppStack from "./AppStack";
 import BudgetScreen from "../screens/BudgetScreen";
-
+// import ExpenseDetail from "../screens/TransactionSrceen/ExpenseSrceen/ExpenseDetail";
 
 import Home from "../screens/HomeSreen/Home";
 const Tab = createBottomTabNavigator();
@@ -48,7 +48,7 @@ function TabNavigator() {
         };
       }}
     >
-      <Tab.Screen name="Tổng quan" component={Home} />
+      <Tab.Screen name="Tổng quan" component={AppStack} />
       <Tab.Screen name="Mục tiêu" component={SavingGoalStackScreen} />
       <Tab.Screen
         name="Giao dịch"
@@ -64,6 +64,11 @@ function TabNavigator() {
           ),
         }}
       />
+        {/* <TransactionStack.Screen 
+              name="ExpenseDetail" 
+              component={ExpenseDetail} 
+              options={{ title: 'Chi tiết' }} 
+            /> */}
       <Tab.Screen name="Ngân sách" component={BudgetScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
