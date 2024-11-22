@@ -13,8 +13,27 @@ export default function ExpenseList({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [transaction, setTransaction] = useState(null);
+  const filters = ["Tất cả", "Khoảng tiền", "Khoảng thời gian"];
+
+  const handleOpenModal = (transaction) => {
+    setTransaction(transaction);
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setTransaction(null);
+  };
+
+ 
   useEffect(() => {
     const loadUserId = async () => {
       const id = await SecureStore.getItemAsync('userId');
@@ -160,7 +179,7 @@ export default function ExpenseList({ route, navigation }) {
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return <ActivityIndicator size={40} color="#0000ff" />;
   }
 
   return (

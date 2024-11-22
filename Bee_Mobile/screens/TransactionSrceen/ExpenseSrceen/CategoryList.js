@@ -22,7 +22,7 @@ const CategoryList = ({ onSelectCategory }) => {
     loadCategories();
   }, []);
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+  if (loading) return <ActivityIndicator size={40} color="#0000ff" />;
   if (error) return <Text style={styles.errorText}>Error: {error}</Text>;
 
   return (

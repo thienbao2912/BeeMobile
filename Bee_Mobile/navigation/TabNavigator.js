@@ -35,6 +35,10 @@ function TabNavigator() {
           iconName = "user";
           IconComponent = FontAwesomeIcon;
         }
+        //  else if(route.name === "danh mục") {
+        //   iconName = 'category';
+        //   IconComponent = FontAwesomeIcon;
+        // }
 
         return {
           tabBarIcon: ({ focused, color, size }) => (
@@ -71,6 +75,7 @@ function TabNavigator() {
             /> */}
       <Tab.Screen name="Ngân sách" component={BudgetScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
+      {/* <Tab.Screen name="danh mục" component={CategoriesStackScreen} /> */}
     </Tab.Navigator>
   );
 }

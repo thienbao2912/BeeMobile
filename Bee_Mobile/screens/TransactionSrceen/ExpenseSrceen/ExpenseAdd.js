@@ -197,16 +197,22 @@ const ExpenseAdd = () => {
       </View>
       <View style={tw`flex-row items-center border-b border-indigo-100 p-2 mb-4`}>
         <Ionicons name="list" size={24} color="#D3D3D3" />
-        <TouchableOpacity style={tw`flex-1 ml-2`}>
+        <TouchableOpacity style={tw`flex-1 ml-2`} onPress={() => Alert.alert('Chọn danh mục')}>
           <View style={tw`flex-row items-center`}>
             <Text style={tw`text-lg`}>
               {selectedCategory ? categories.find(cat => cat._id === selectedCategory)?.name : 'Chọn danh mục'}
             </Text>
           </View>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`p-2 bg-indigo-600 rounded-full`}
+          onPress={() => navigation.navigate('AddCategoryScreen')}
+        >
+          <Ionicons name="add" size={24} color="white" />
+        </TouchableOpacity>
       </View>
       {isLoadingCategories ? (
-  <ActivityIndicator size="large" color="#5A5DD1" />
+  <ActivityIndicator size={40} color="#5A5DD1" />
 ) : categories.length > 0 ? (
   categories.reduce((rows, category, index) => {
     if (index % 3 === 0) {
@@ -227,7 +233,8 @@ const ExpenseAdd = () => {
             />
             <Text style={tw`text-center`}>
               {category.name.length > 20 ? category.name.substring(0, 20) + '...' : category.name}
-            </Text>{selectedCategory === category._id && (
+            </Text>
+            {selectedCategory === category._id && (
               <Ionicons name="checkmark-circle" size={24} color="#8270DB" style={tw`absolute top-0 right-0`} />
             )}
           </TouchableOpacity>
@@ -277,6 +284,7 @@ const ExpenseAdd = () => {
               )}
             </TouchableOpacity>
           )}
+         
         </View>
       );
     }
