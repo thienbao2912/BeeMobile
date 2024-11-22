@@ -1,28 +1,66 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import tw from 'twrnc';
 import { ProgressBar } from "react-native-paper";
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import * as SecureStore from 'expo-secure-store';
+
+import { addTransactionService } from '../../services/SavingsGoalService';
 
 export default function SavingGoalDetail({ route, navigation }) {
   const { goal } = route.params;
+  const [showDeposit, setShowDeposit] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+  const [currentAmount, setCurrentAmount] = useState(goal.currentAmount);
+  const [transactionHistory, setTransactionHistory] = useState(goal.transactionHistory || []);
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN');
   };
-  const [showDeposit, setShowDeposit] = useState(false);
-  const [amount, setAmount] = useState('');
-  const [note, setNote] = useState('');
 
-  const transactions = [
-    { id: 1, title: 'Đầu tư', note: 'Đầu tư', amount: '+4.000.000 đ', icon: require("../../assets/images/favicon.png") },
-    { id: 2, title: 'Làm thêm', note: 'Làm thêm ngày 5', amount: '+400.000 đ', icon: require("../../assets/images/favicon.png") },
-    { id: 3, title: 'Tiết kiệm', note: 'Đập heo', amount: '+500.000 đ', icon: require("../../assets/images/favicon.png") },
-    { id: 4, title: 'Tiền cho', note: 'Anh hai cho tiền', amount: '+2.500.000 đ', icon: require("../../assets/images/favicon.png") },
-    { id: 5, title: 'Trả nợ', note: 'Bạn trả nợ', amount: '-2.000.000 đ', icon: require("../../assets/images/favicon.png") },
-  ];
+  const progress = goal.targetAmount ? currentAmount / goal.targetAmount : 0;
 
-  const progress = goal.currentAmount / goal.targetAmount;
+  const handleAddTransaction = async () => {
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      Alert.alert('Lỗi', 'Vui lòng nhập số tiền hợp lệ.');
+      return;
+    }
+
+    try {
+      const userId = await SecureStore.getItemAsync('userId');
+      if (!userId) {
+        Alert.alert('Lỗi', 'Không tìm thấy thông tin người dùng.');
+        return;
+      }
+
+      const transaction = {
+        userId,
+        goalId: goal._id,
+        amount: parseFloat(amount),
+        note,
+        date: new Date(),
+      };
+
+      const response = await addTransactionService(transaction);
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      setCurrentAmount(response.updatedAmount);
+      setTransactionHistory([response.transaction, ...transactionHistory]);
+
+      setAmount('');
+      setNote('');
+      setShowDeposit(false);
+      Alert.alert('Thành công', 'Nạp tiền thành công.');
+    } catch (error) {
+      console.error('Error in handleAddTransaction:', error);
+      Alert.alert('Lỗi', 'Không thể nạp tiền. Vui lòng thử lại.');
+    }
+  };
 
   return (
     <ScrollView style={tw`p-5 bg-gray-100`}>
@@ -30,7 +68,7 @@ export default function SavingGoalDetail({ route, navigation }) {
         <TouchableOpacity
           style={tw`absolute top-2 right-2`}
           onPress={() => navigation.navigate('SavingGoalEdit', { goalId: goal._id })}
-          >
+        >
           <Icon name="edit" size={24} color="#6B46C1" />
         </TouchableOpacity>
         <View style={tw`flex-row items-center`}>
@@ -41,13 +79,13 @@ export default function SavingGoalDetail({ route, navigation }) {
               {formatDate(goal.startDate)} - {formatDate(goal.endDate)}
             </Text>
             <Text style={tw`text-gray-500`}>
-              {goal.currentAmount.toLocaleString()}đ - {goal.targetAmount.toLocaleString()}đ
+              {currentAmount.toLocaleString()}đ / {goal.targetAmount.toLocaleString()}đ
             </Text>
           </View>
         </View>
         <ProgressBar progress={progress} color={progress === 1 ? "green" : "blue"} style={tw`h-2 rounded-full mt-2`} />
         <Text style={tw`${progress === 1 ? 'text-green-500' : 'text-blue-500'} font-bold mt-2`}>
-          {progress === 1 ? 'Hoàn thành' : ` đã hoàn thành ${Math.floor(progress * 100)}%`}
+          {progress === 1 ? 'Hoàn thành' : `Đã hoàn thành ${Math.floor(progress * 100)}%`}
         </Text>
       </View>
 
@@ -60,43 +98,45 @@ export default function SavingGoalDetail({ route, navigation }) {
 
       {showDeposit && (
         <View style={tw`bg-white p-4 rounded-lg mb-4`}>
-          <Text style={tw`font-bold mb-1`}>Số tiền</Text>
+          <Text style={tw`font-bold mb-1 text-gray-600`}>Số tiền</Text>
           <TextInput
+            style={tw`border border-gray-300 p-2 rounded-md mb-4`}
             placeholder="Nhập số tiền"
+            keyboardType="numeric"
             value={amount}
             onChangeText={setAmount}
-            keyboardType="numeric"
-            style={tw`border border-gray-300 p-3 rounded-lg mb-3`}
           />
-
-          <Text style={tw`font-bold mb-1`}>Ghi chú</Text>
+          <Text style={tw`font-bold mb-1 text-gray-600`}>Ghi chú</Text>
           <TextInput
+            style={tw`border border-gray-300 p-2 rounded-md mb-4`}
             placeholder="Ghi chú"
             value={note}
             onChangeText={setNote}
-            style={tw`border border-gray-300 p-3 rounded-lg mb-3`}
           />
-
-          <TouchableOpacity style={tw`bg-purple-600 py-3 rounded-lg items-center`}>
-            <Text style={tw`text-white font-bold`}>Nạp tiền</Text>
+          <TouchableOpacity
+            style={tw`bg-blue-500 p-3 rounded-md`}
+            onPress={handleAddTransaction}
+          >
+            <Text style={tw`text-white text-center font-bold`}>Xác nhận</Text>
           </TouchableOpacity>
         </View>
       )}
 
       <View style={tw`bg-white p-4 rounded-lg`}>
-        <Text style={tw`font-bold text-lg mb-4`}>Lịch sử giao dịch</Text>
-        {transactions.map((transaction) => (
-          <View key={transaction.id} style={tw`flex-row items-center mb-4`}>
-            <Image source={transaction.icon} style={tw`w-10 h-10 rounded-full mr-4`} />
-            <View style={tw`flex-1`}>
-              <Text style={tw`font-bold`}>{transaction.title}</Text>
-              <Text style={tw`text-gray-500`}>{transaction.note}</Text>
+        <Text style={tw`font-bold mb-4`}>Lịch sử nạp tiền</Text>
+        {transactionHistory.length > 0 ? (
+          transactionHistory.map((transaction, index) => (
+            <View key={index} style={tw`flex-row justify-between mb-3`}>
+              <View>
+                <Text style={tw`text-green-600 font-bold`}>+{transaction.amount.toLocaleString()}đ</Text>
+                <Text style={tw`text-gray-600`}>{transaction.note}</Text>
+              </View>
+              <Text style={tw`text-gray-600`}>{formatDate(transaction.date)}</Text>
             </View>
-            <Text style={tw`font-bold ${transaction.amount.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-              {transaction.amount}
-            </Text>
-          </View>
-        ))}
+          ))
+        ) : (
+          <Text style={tw`text-gray-600`}>Không có giao dịch nào.</Text>
+        )}
       </View>
     </ScrollView>
   );
