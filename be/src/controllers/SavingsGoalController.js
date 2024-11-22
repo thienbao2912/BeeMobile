@@ -65,5 +65,48 @@ const updateSavingsGoal = async (req, res) => {
     res.status(500).json({ message: 'Error updating the goal', error });
   }
 };
+const deleteSavingGoal = async (req, res) => {
+  const { goalId } = req.params;
 
-module.exports = { getAllSavingsGoalsByUser, addSavingsGoal, getSavingGoalById, updateSavingsGoal };
+  try {
+    const deletedGoal = await SavingsGoal.findByIdAndDelete(goalId);
+
+    if (!deletedGoal) {
+      return res.status(404).json({ message: 'Saving goal not found' });
+    }
+
+    res.status(200).json({ message: 'Saving goal deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting the goal', error });
+  }
+};
+const addTransaction = async (req, res) => {
+  const { goalId, userId, amount, note, date } = req.body;
+
+  try {
+    const goal = await SavingsGoal.findById(goalId);
+
+    if (!goal) {
+      return res.status(404).json({ message: 'Saving goal not found' });
+    }
+
+    const updatedAmount = goal.currentAmount + parseFloat(amount);
+
+    goal.currentAmount = updatedAmount;
+    goal.transactionHistory = [
+      ...goal.transactionHistory,
+      { userId, amount, note, date },
+    ];
+
+    await goal.save();
+
+    res.status(200).json({
+      message: 'Transaction added successfully',
+      updatedAmount,
+      transaction: { userId, amount, note, date },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error adding transaction', error });
+  }
+};
+module.exports = {addTransaction, getAllSavingsGoalsByUser, addSavingsGoal, getSavingGoalById, updateSavingsGoal, deleteSavingGoal };

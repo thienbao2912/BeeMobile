@@ -1,8 +1,7 @@
-import * as SecureStore from 'expo-secure-store'; // Import SecureStore để lấy token
+import * as SecureStore from 'expo-secure-store';
 
 const API_URL = 'http://172.16.29.85:4000/api';
 
-// Hàm lấy tất cả giao dịch
 export const fetchAllTransactions = async () => {
   try {
     const response = await fetch(`${API_URL}/transactions`);
@@ -74,7 +73,6 @@ export const fetchAllCategories = async () => {
       console.error('Server Response:', errorData);
       throw new Error(errorData.message || 'Failed to fetch categories');
     }
-
     const data = await response.json();
     return data;
   } catch (error) {
@@ -83,7 +81,6 @@ export const fetchAllCategories = async () => {
   }
 };
 
-// Hàm thêm giao dịch
 export const addTransaction = async (transactionData) => {
   try {
     console.log(`Sending transaction data:`, transactionData);
@@ -101,7 +98,6 @@ export const addTransaction = async (transactionData) => {
   }
 };
 
-// Hàm xóa giao dịch
 export const deleteTransaction = async (transactionId) => {
   try {
     const response = await fetch(`${API_URL}/transactions/${transactionId}`, {
