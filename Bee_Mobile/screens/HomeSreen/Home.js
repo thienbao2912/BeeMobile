@@ -90,7 +90,7 @@ const Home = () => {
   }
 
   return (
-    <View style={tw`mt-10 flex-1 bg-gray-100`}>
+    <ScrollView style={tw`mt-10 flex-1 bg-gray-100`}>
       <View style={tw`bg-purple-200 p-5 flex-row justify-between items-center`}>
         <Text style={tw`text-2xl font-bold text-black`}>
           {isVisible ? `${wallet.toLocaleString()}đ` : '*** đ'}
@@ -207,7 +207,7 @@ const Home = () => {
           </TouchableOpacity>
         </Card>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
