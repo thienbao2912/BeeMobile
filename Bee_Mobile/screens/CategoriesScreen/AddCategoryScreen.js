@@ -53,33 +53,44 @@ const AddCategoryScreen = () => {
     loadUserId();
   }, []);
 
+  const handleSelectIcon = (icon) => {
+    setSelectedIcon(icon); // Cập nhật giá trị icon đã chọn
+    setIconModalVisible(false); // Đóng modal sau khi chọn
+  };
+
   const handleSaveCategory = async () => {
     if (!categoryName.trim()) {
       setError("Tên danh mục không được để trống");
       return;
     }
-
+  
     setIsLoading(true);
     setError("");
+  
     try {
+      // Đặt giá trị mặc định cho selectedIcon nếu chưa được chọn
+      const iconToSave =
+        selectedIcon === "category"
+          ? "https://firebasestorage.googleapis.com/v0/b/asmreactjs-c0ddc.appspot.com/o/categories%2Fserum.png?alt=media&token=3038a34d-dac5-44c8-8fd8-c18fdd57f3b2"
+          : selectedIcon;
+  
       const newCategory = {
-        _id: null, // API có thể tự tạo ID
+        _id: null,
         userId: `ObjectId('${userId}')`,
         status: "active",
         type: categoryType, // Lưu giá trị 'income' hoặc 'expense'
         name: categoryName,
-        image: selectedIcon,
+        image: iconToSave, // Đảm bảo giá trị icon hợp lệ
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         description,
       };
-
+  
       await addCategory(newCategory);
-
+  
       console.log("Danh mục đã được lưu:", newCategory);
       setCategoryName("");
-      setDescription("");
-      setCategoryType("expense"); // Đặt lại mặc định là "Khoản chi"
+      setCategoryType("expense");
       setSelectedIcon("category");
       setIsLoading(false);
     } catch (error) {
@@ -87,6 +98,7 @@ const AddCategoryScreen = () => {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <View style={tw`flex-1 p-4 bg-white`}>
@@ -103,10 +115,10 @@ const AddCategoryScreen = () => {
             source={{
               uri:
                 selectedIcon === "category"
-                  ? "https://firebasestorage.googleapis.com/v0/b/asmreactjs-c0ddc.appspot.com/o/categories%2Fserum.png?alt=media&token=3038a34d-dac5-44c8-8fd8-c18fdd57f3b2" // Đường dẫn hình ảnh mặc định
-                  : selectedIcon, // Sử dụng URI của hình ảnh đã chọn
+                  ? "https://firebasestorage.googleapis.com/v0/b/asmreactjs-c0ddc.appspot.com/o/categories%2Fserum.png?alt=media&token=3038a34d-dac5-44c8-8fd8-c18fdd57f3b2"
+                  : selectedIcon,
             }}
-            style={tw`w-12 h-12`} // Điều chỉnh kích thước hình ảnh
+            style={tw`w-12 h-12`} // Kích thước icon
           />
         </TouchableOpacity>
 
@@ -121,23 +133,14 @@ const AddCategoryScreen = () => {
         />
       </View>
 
-      {/* Trường nhập liệu cho mô tả danh mục */}
-      <TextInput
-        placeholder="Mô tả danh mục"
-        value={description}
-        onChangeText={setDescription}
-        style={tw`border border-gray-300 p-3 rounded-lg mb-4`}
-        multiline
-      />
-
       {/* Chọn loại danh mục */}
       <Text style={tw`mb-2 text-gray-700 font-semibold`}>Loại danh mục</Text>
       <SegmentedControl
-        values={["Khoản thu", "Khoản chi"]}
-        selectedIndex={categoryType === "expense" ? 1 : 0}
+        values={["Khoản chi", "Khoản thu"]}
+        selectedIndex={categoryType === "expense" ? 1 : 0} // Mapping giá trị thực tế
         onChange={(event) => {
           const selectedValue = event.nativeEvent.value;
-          setCategoryType(selectedValue === "Khoản chi" ? "expense" : "income");
+          setCategoryType(selectedValue === "Khoản chi" ? "income" : "expense"); // Chuyển đổi sang giá trị API
         }}
         style={tw`mb-4`}
       />

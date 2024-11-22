@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-const API_URL = "http://172.16.27.190:4000/api";
+const API_URL = "http://172.16.21.39:4000/api";
 
 export const fetchAllCategories = async () => {
   try {
