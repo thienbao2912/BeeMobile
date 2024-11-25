@@ -104,3 +104,52 @@ export const updateSavingGoal = async (goalId, goalData) => {
     throw error;
   }
 };
+export const fetchAllCategories = async () => {
+  try {
+    const token = await SecureStore.getItemAsync('token');
+    console.log('Token:', token);
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    const response = await fetch(`${API_URL}/v2/categories`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Server Response:', errorData);
+      throw new Error(errorData.message || 'Failed to fetch categories');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
+};
+export const addTransactionService = async (transactionData) => {
+  try {
+    const response = await fetch(`${API_URL}/goals/transaction`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(transactionData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to add transaction');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding transaction:', error);
+    throw error;
+  }
+};
