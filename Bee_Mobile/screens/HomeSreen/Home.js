@@ -107,7 +107,7 @@ const Home = () => {
               <Text style={tw`text-sm font-bold text-green-600`}>
                 {isVisible
                   ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalIncome)
-                  : '***'}
+                  : '*** đ'}
               </Text>
               <Text style={tw`text-xs text-gray-600`}>Thu nhập</Text>
             </View>
@@ -115,7 +115,7 @@ const Home = () => {
               <Text style={tw`text-sm font-bold text-red-600`}>
                 {isVisible
                   ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalExpense)
-                  : '***'}
+                  : '*** đ'}
               </Text>
               <Text style={tw`text-xs text-gray-600`}>Chi tiêu</Text>
             </View>
@@ -123,14 +123,12 @@ const Home = () => {
               <Text style={tw`text-sm font-bold text-blue-600`}>
                 {isVisible
                   ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalSaving)
-                  : '***'}
+                  : '*** đ'}
               </Text>
               <Text style={tw`text-xs text-gray-600`}>Tiết kiệm</Text>
             </View>
           </View>
         </Card>
-
-
 
         <Card title="Mục tiêu tiết kiệm">
           <FlatList
@@ -140,7 +138,7 @@ const Home = () => {
               const progressPercentage = Math.floor(progress * 100) || 0;
               return (
                 <View style={tw`mr-4 items-center`}>
-                  <FontAwesome name="suitcase" size={40} color="#7D3C98" style={tw`mb-2`} />
+                  <FontAwesome name="suitcase" size={40} color="#7D3C98" style={tw`mb-2`} /> 
                   <Text style={tw`text-base text-purple-700 mb-1`}>{item.name || "Chưa có tên"}</Text>
                   <View style={tw`w-24 h-2 bg-gray-300 rounded-full overflow-hidden`}>
                     <View
