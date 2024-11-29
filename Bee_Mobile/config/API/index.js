@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 // Cấu hình URL API backend của bạn
-const API_URL = 'http://192.168.10.45:4000';  // Thay địa chỉ IP của backend nếu cần
+const API_URL = 'http://172.16.30.124:4000';  // Thay địa chỉ IP của backend nếu cần
 
 // Hàm lưu token vào SecureStore
 const saveToken = async (token) => {

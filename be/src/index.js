@@ -6,7 +6,8 @@ const connectDB = require("./config/database");
 const savingsGoalRouter = require("./routes/SavingsGoalRouter");
 const authRoutes = require("./routes/auth");
 const transactionRoutes = require("./routes/transaction");
-
+const savingsFund = require("./routes/savingsFund");
+const fund = require("./routes/fund")
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'screens'));
@@ -22,6 +23,8 @@ app.use('/api', savingsGoalRouter);
 app.use("/api/auth", authRoutes);
 app.use("/api/v2/categories", require('./routes/category'));
 app.use("/api/transactions", transactionRoutes);
+app.use("/api/savingsFund", savingsFund)
+app.use("/api/fund", fund)
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
   console.log(`Server is running on ${port}`);
