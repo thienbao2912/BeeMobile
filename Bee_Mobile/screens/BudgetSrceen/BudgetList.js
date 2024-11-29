@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import tw from 'twrnc';
-import { View, Text, ScrollView, TouchableOpacity, Modal, Alert, SafeAreaView, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Modal, Alert, SafeAreaView, Image, StatusBar } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { fetchAllBudgets, deleteBudget } from '../../services/Budget'; // Import deleteBudget from service
 import { useNavigation, useRoute } from '@react-navigation/native'; // Thêm useRoute để lấy tham số
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 export default function BudgetScreen() {
     const navigation = useNavigation();
@@ -128,13 +129,18 @@ export default function BudgetScreen() {
 
     return (
         <SafeAreaView style={tw`flex-1 bg-gray-100`}>
+            {/* Thanh trạng thái với nền trắng */}
+            <View style={{ height: StatusBar.currentHeight || 0, backgroundColor: 'white' }} />
+
+            {/* Thanh hiển thị tên trang */}
             <View style={tw`bg-purple-600 py-3 px-4 flex-row items-center justify-between`}>
                 <Text style={tw`text-white text-lg font-bold`}>Danh sách ngân sách</Text>
+                {/* Nút thêm mới với icon dấu cộng */}
                 <TouchableOpacity
-                    style={tw`bg-teal-400 py-2 px-4 rounded`}
+                    style={tw`bg-white rounded-full p-2`} // Nền trắng và bo tròn
                     onPress={() => navigation.navigate('BudgetAdd')}
                 >
-                    <Text style={tw`text-white text-sm font-bold`}>Thêm mới</Text>
+                    <Ionicons name="add" size={24} color="black" /> {/* Dấu cộng màu đen */}
                 </TouchableOpacity>
             </View>
 

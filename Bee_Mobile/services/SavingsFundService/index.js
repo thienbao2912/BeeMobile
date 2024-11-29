@@ -1,4 +1,4 @@
-const API_URL = 'http://172.16.30.124:4000/api'; // Đảm bảo đúng port của backend
+const API_URL = 'http://172.16.30.151:4000/api'; // Đảm bảo đúng port của backend
 
 import * as SecureStore from 'expo-secure-store';
 
