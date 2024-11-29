@@ -56,9 +56,14 @@ function Profile() {
       {userProfile ? (
         <>
           <Image
-            source={{ uri: userProfile.avatar }}
+            source={
+              userProfile.avatar
+                ? { uri: userProfile.avatar }
+                : require("../assets/images/rabbit.png")
+            }
             style={tw`w-40 h-40 rounded-full shadow-xl mb-6`}
           />
+
           <Text style={tw`text-lg font-bold text-indigo-700`}>
             {new Intl.NumberFormat('vi-VN', {
               style: 'currency',
