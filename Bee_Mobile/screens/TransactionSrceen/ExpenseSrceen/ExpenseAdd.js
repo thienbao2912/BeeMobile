@@ -17,6 +17,7 @@ import moment from 'moment';
 import 'moment/locale/vi';
 import { fetchAllCategories, addTransaction } from '../../../services/Transaction';
 import * as SecureStore from 'expo-secure-store';
+import { showMessage } from 'react-native-flash-message';
 import tw from 'twrnc';
 moment.locale('vi');
 const ExpenseAdd = () => {
@@ -87,6 +88,10 @@ const ExpenseAdd = () => {
       setDescription('');
       setSelectedCategory(null);setSelectedDate(moment().format('DD/MM/YYYY'));
       navigation.navigate('ExpenseList', { refresh: true });
+      showMessage({
+        message: "Thêm chi tiêu thành công!",
+        type: "success",
+    });
       // Alert.alert('Thêm chi tiêu thành công.');
     } catch (error) {
       console.error('Lỗi thêm chi tiêu:', error);

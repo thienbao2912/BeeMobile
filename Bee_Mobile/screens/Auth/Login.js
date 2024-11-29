@@ -4,6 +4,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import tailwind from 'twrnc';
 import { useForm, Controller } from 'react-hook-form';
 import { loginUser } from '../../services/Auth';
+import { showMessage } from 'react-native-flash-message';
 
 function Login({ navigation }) {
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -14,7 +15,10 @@ function Login({ navigation }) {
         try {
             const response = await loginUser(data);
             if (response?.accessToken) {
-               
+                showMessage({
+                    message: "Đăng nhập thành công!",
+                    type: "success",
+                });
                 reset();
                 navigation.reset({
                     index: 0,
@@ -22,9 +26,19 @@ function Login({ navigation }) {
                 });
             } else {
                 setError('api', { message: 'Đăng nhập thất bại, không nhận được token.' });
+                showMessage({
+                    message: "Đăng nhập thất bại!",
+                    description: "Không nhận được token.",
+                    type: "danger",
+                });
             }
         } catch (err) {
             setError('api', { message: 'Thông tin đăng nhập sai!' });
+            showMessage({
+                message: "Đăng nhập thất bại!",
+                description: "Thông tin đăng nhập sai.",
+                type: "danger",
+            });
         }
     };
 
