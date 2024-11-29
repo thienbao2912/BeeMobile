@@ -1,7 +1,9 @@
 import axios from "axios";
 import * as SecureStore from 'expo-secure-store';
 
-const BASE_URL = "http://172.16.30.124:4000";
+// const BASE_URL = "http://172.16.19.108:4000";
+const BASE_URL = "http://172.16.30.151:4000";
+// const BASE_URL = "http://172.16.30.124:4000";
 
 const getToken = async () => {
     try {
