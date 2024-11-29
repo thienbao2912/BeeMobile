@@ -16,6 +16,7 @@ import {
   fetchAllSavingGoalsByUser,
   deleteSavingGoal,
 } from "../../services/SavingsGoalService/index";
+import { showMessage } from 'react-native-flash-message';
 
 export default function SavingGoalScreen({ navigation }) {
   const [savingGoals, setSavingGoals] = useState([]);
@@ -69,6 +70,10 @@ export default function SavingGoalScreen({ navigation }) {
     try {
       await deleteSavingGoal(goalId);
       setSavingGoals(savingGoals.filter((goal) => goal._id !== goalId));
+      showMessage({
+        message: "Xóa thành công!",
+        type: "success",
+    });
     } catch (error) {
       console.error("Error deleting saving goal:", error);
     }

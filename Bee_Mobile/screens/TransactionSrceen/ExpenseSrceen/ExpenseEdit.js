@@ -17,6 +17,7 @@ import moment from 'moment';
 import 'moment/locale/vi'; 
 import { fetchTransactionById, editTransaction, fetchAllCategories } from "../../../services/Transaction"; 
 import * as SecureStore from 'expo-secure-store';
+import { showMessage } from 'react-native-flash-message';
 import tw from "twrnc";
 
 
@@ -172,8 +173,16 @@ const ExpenseEdit = () => {
       await editTransaction(transactionId, updatedExpense);
       // Alert.alert("Cập nhật thành công");
       navigation.navigate('ExpenseList', { refresh: true});
+      showMessage({
+        message: "Cập nhật thành công!",
+        type: "success",
+    });
     } catch (error) {
       console.error("Lỗi chỉnh sửa chi tiêu:", error);
+      showMessage({
+        message: "Cập nhật thất bại!",
+        type: "danger",
+    });
     } finally {
       setLoading(false);
     }

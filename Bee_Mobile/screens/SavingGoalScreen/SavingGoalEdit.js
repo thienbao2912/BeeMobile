@@ -4,6 +4,7 @@ import tw from 'twrnc';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ProgressBar } from 'react-native-paper';
 import { fetchSavingGoalById, updateSavingGoal, fetchAllCategories } from '../../services/SavingsGoalService';
+import { showMessage } from 'react-native-flash-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function EditGoal({ route, navigation }) {
@@ -87,8 +88,16 @@ export default function EditGoal({ route, navigation }) {
     try {
       await updateSavingGoal(goalId, goalData);
       navigation.goBack();
+      showMessage({
+        message: "Cập nhật thành công!",
+        type: "success",
+    });
     } catch (error) {
       console.error('Error updating saving goal:', error);
+      showMessage({
+        message: "Cập nhật thất bại!",
+        type: "danger",
+    });
     }
   };
 
