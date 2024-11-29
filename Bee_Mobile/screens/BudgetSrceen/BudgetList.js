@@ -1,206 +1,186 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, StatusBar, SafeAreaView, Modal, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import tw from 'twrnc';
+import { View, Text, ScrollView, TouchableOpacity, Modal, Alert, SafeAreaView, Image } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
+import { fetchAllBudgets, deleteBudget } from '../../services/Budget'; // Import deleteBudget from service
+import { useNavigation, useRoute } from '@react-navigation/native'; // Thêm useRoute để lấy tham số
 
 export default function BudgetScreen() {
     const navigation = useNavigation();
+    const route = useRoute(); // Dùng để lấy các tham số truyền vào từ màn hình khác
     const [modalVisible, setModalVisible] = useState(false);
     const [budgetToDelete, setBudgetToDelete] = useState(null);
+    const [budgets, setBudgets] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState(null);
 
-    const budgets = [
-        {
-            id: 1,
-            name: 'Đi du lịch',
-            totalAmount: 2000000,
-            icon: require('../../assets/images/travel-luggage.png'),
-            expenses: [500000, 300000], // Các chi tiêu thuộc ngân sách này
-            startDate: '01/10/2024', // Ngày bắt đầu
-            endDate: '31/12/2024', // Ngày kết thúc
-        },
-        {
-            id: 2,
-            name: 'Thư giãn',
-            totalAmount: 3000000,
-            icon: require('../../assets/images/relaxation.png'),
-            expenses: [3000000], // Các chi tiêu thuộc ngân sách này
-            startDate: '01/11/2024', // Ngày bắt đầu
-            endDate: '15/12/2024', // Ngày kết thúc
-        },
-        {
-            id: 3,
-            name: 'Ăn uống',
-            totalAmount: 1000000,
-            icon: require('../../assets/images/diet.png'),
-            expenses: [2000000], // Các chi tiêu thuộc ngân sách này
-            startDate: '15/09/2024', // Ngày bắt đầu
-            endDate: '01/12/2024', // Ngày kết thúc
-        },
-        {
-            id: 4,
-            name: 'Học tập',
-            totalAmount: 4000000,
-            icon: require('../../assets/images/education.png'),
-            expenses: [3000000], // Các chi tiêu thuộc ngân sách này
-            startDate: '01/09/2024', // Ngày bắt đầu
-            endDate: '30/11/2024', // Ngày kết thúc
-        },
-        {
-            id: 5,
-            name: 'Di chuyển',
-            totalAmount: 5000000,
-            icon: require('../../assets/images/vehicle.png'),
-            expenses: [4250000], // Các chi tiêu thuộc ngân sách này
-            startDate: '05/10/2024', // Ngày bắt đầu
-            endDate: '15/12/2024', // Ngày kết thúc
-        },
-    ];
-
-    const calculateRemainingAmount = (expenses, totalAmount) => {
-        const totalExpenses = expenses.reduce((acc, expense) => acc + expense, 0);
-        return totalAmount - totalExpenses;
-    };
-
-    const calculateProgress = (remainingAmount, totalAmount) => {
-        if (totalAmount <= 0) return 0;
-        return (remainingAmount / totalAmount) * 100;
-    };
-
-    const getProgressBarColor = (remainingAmount, totalAmount) => {
-        const progress = calculateProgress(remainingAmount, totalAmount);
-        if (progress >= 50) return 'green';
-        if (progress >= 25) return 'blue'; // Thay thế màu vàng bằng xanh dương nhạt
-        if (progress > 0) return 'orange';
-        return 'red';
-    };
-
-    const getProgressBarWidth = (remainingAmount, totalAmount) => {
-        const progress = calculateProgress(remainingAmount, totalAmount);
-        return `${Math.max(progress, -100)}%`;
-    };
-
-    const getProgressBarText = (remainingAmount, totalAmount) => {
-        const progress = calculateProgress(remainingAmount, totalAmount);
-        return `${Math.round(Math.max(progress, -100))}%`;
-    };
-
-    const getBudgetStatus = (remainingAmount, totalAmount) => {
-        if (remainingAmount < 0) {
-            return {
-                text: 'Chi tiêu vượt ngân sách',
-                color: 'red',
-            };
-        }
-        if (remainingAmount <= 0) {
-            return {
-                text: 'Ngân sách đã hết',
-                color: 'red',
-            };
-        }
-        return {
-            text: `Ngân sách còn ${Math.round(calculateProgress(remainingAmount, totalAmount))}%`,
-            color: getProgressBarColor(remainingAmount, totalAmount),
+    // Get userId from SecureStore
+    useEffect(() => {
+        const fetchUserIdFromStorage = async () => {
+            try {
+                const userId = await SecureStore.getItemAsync('userId');
+                if (userId) {
+                    setUserId(userId);
+                }
+            } catch (error) {
+                console.error("Error loading user ID", error);
+            }
         };
-    };
 
-    // Hàm điều hướng sang màn hình chi tiết ngân sách
-    const navigateToDetail = (budget) => {
-        navigation.navigate('BudgetDetail', { budget });
-    };
+        fetchUserIdFromStorage();
+    }, []);
 
-    // Hàm mở modal xác nhận xóa
+    // Fetch budgets from the API when userId changes
+    useEffect(() => {
+        if (!userId) return; // Đảm bảo có userId
+
+        const fetchBudgets = async () => {
+            try {
+                setLoading(true);  // Bắt đầu tải lại dữ liệu
+                const budgetData = await fetchAllBudgets(userId);
+                setBudgets(budgetData); // Assuming budgetData matches the expected structure
+            } catch (error) {
+                console.error('Error loading budgets:', error);
+                Alert.alert('Lỗi', 'Không thể tải danh sách ngân sách');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBudgets();
+    }, [userId]);  // fetch lại khi userId thay đổi
+
+    // Lắng nghe sự kiện khi quay lại màn hình danh sách từ màn hình cập nhật
+    useEffect(() => {
+        if (route.params?.refresh) { // Kiểm tra nếu có truyền refresh vào
+            setLoading(true);
+            const fetchBudgets = async () => {
+                try {
+                    const budgetData = await fetchAllBudgets(userId);
+                    setBudgets(budgetData); // Cập nhật lại dữ liệu
+                } catch (error) {
+                    console.error('Error loading budgets:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchBudgets();
+        }
+    }, [route.params?.refresh]); // Lắng nghe sự thay đổi của refresh
+
     const openDeleteModal = (budget) => {
-        setBudgetToDelete(budget);
-        setModalVisible(true);
+        if (budget) {
+            setBudgetToDelete(budget);
+            setModalVisible(true);
+        }
     };
 
-    // Hàm xác nhận xóa ngân sách
-    const confirmDelete = () => {
-        // Xóa ngân sách tại đây
-        // Bạn có thể thêm mã để xóa ngân sách khỏi danh sách của bạn
-        setModalVisible(false);
-        setBudgetToDelete(null);
-        // Cập nhật danh sách ngân sách ở đây nếu cần
+    const confirmDelete = async () => {
+        if (!budgetToDelete || !budgetToDelete._id) return;
+
+        try {
+            await deleteBudget(budgetToDelete._id);
+            setModalVisible(false);
+            setBudgetToDelete(null);
+
+            // Sau khi xóa, gọi lại API để tải lại danh sách ngân sách
+            setLoading(true); // Đánh dấu quá trình tải lại
+            const budgetData = await fetchAllBudgets(userId);
+            setBudgets(budgetData); // Cập nhật lại dữ liệu
+            setLoading(false); // Kết thúc quá trình tải lại
+
+            Alert.alert('Thành công', 'Ngân sách đã được xóa');
+        } catch (error) {
+            console.error('Error deleting budget:', error);
+            Alert.alert('Lỗi', 'Không thể xóa ngân sách');
+        }
     };
 
-    // Hàm hủy bỏ xóa
     const cancelDelete = () => {
         setModalVisible(false);
         setBudgetToDelete(null);
     };
 
+    // Function to handle update of budget
+    const handleUpdateBudget = async (updatedBudgetData) => {
+        try {
+            // Giả sử có một phương thức updateBudget
+            // await updateBudget(updatedBudgetData);
+
+            // Sau khi cập nhật thành công, gọi lại API để tải lại danh sách
+            setLoading(true);
+            const budgetData = await fetchAllBudgets(userId);
+            setBudgets(budgetData); // Cập nhật lại dữ liệu
+            setLoading(false);
+
+            Alert.alert('Cập nhật thành công', 'Ngân sách đã được cập nhật');
+            // Chuyển hướng về màn hình danh sách và truyền refresh = true để tải lại dữ liệu
+            navigation.navigate('BudgetList', { refresh: true });
+        } catch (error) {
+            console.error('Error updating budget:', error);
+            Alert.alert('Lỗi', 'Không thể cập nhật ngân sách');
+        }
+    };
+
+    if (loading) {
+        return <Text>Đang tải...</Text>;
+    }
+
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerText}>Danh sách ngân sách</Text>
-                <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('BudgetAdd')}>
-                    <Text style={styles.addButtonText}>Thêm mới</Text>
+        <SafeAreaView style={tw`flex-1 bg-gray-100`}>
+            <View style={tw`bg-purple-600 py-3 px-4 flex-row items-center justify-between`}>
+                <Text style={tw`text-white text-lg font-bold`}>Danh sách ngân sách</Text>
+                <TouchableOpacity
+                    style={tw`bg-teal-400 py-2 px-4 rounded`}
+                    onPress={() => navigation.navigate('BudgetAdd')}
+                >
+                    <Text style={tw`text-white text-sm font-bold`}>Thêm mới</Text>
                 </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.budgetList}>
-                {budgets.map((budget) => {
-                    const remainingAmount = calculateRemainingAmount(budget.expenses, budget.totalAmount);
-                    const progressText = getProgressBarText(remainingAmount, budget.totalAmount);
-                    const progressColor = getProgressBarColor(remainingAmount, budget.totalAmount);
-                    const budgetStatus = getBudgetStatus(remainingAmount, budget.totalAmount);
-
+            <ScrollView style={tw`flex-1 px-4`}>
+                {budgets.map((budget, index) => {
+                    const key = budget.id ? `budget-${budget.id}` : `budget-${index}`;
                     return (
-                        <TouchableOpacity key={budget.id} onPress={() => navigateToDetail(budget)}>
-                            <View style={styles.budgetItem}>
-                                <View style={styles.budgetHeader}>
-                                    <Image source={budget.icon} style={styles.budgetIcon} />
-                                    <Text style={styles.budgetName}>{budget.name}</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('BudgetEdit', { budget })} key={key}>
+                            <View style={tw`bg-white rounded-lg p-4 my-2 shadow-md`}>
+                                <View style={tw`flex-row justify-between items-center`}>
+                                    <Image
+                                        source={{ uri: budget.categoryId?.image }}
+                                        style={tw`w-12 h-12 rounded-full mb-2`}
+                                    />
+                                    <Text style={tw`text-lg font-bold flex-1 ml-3`}>{budget.categoryId?.name || 'Không có tên'}</Text>
                                     <TouchableOpacity onPress={() => openDeleteModal(budget)}>
-                                        <Icon name="trash" size={20} color="red" />
+                                        <Text style={tw`text-red-500 text-sm font-bold`}>Xóa</Text>
                                     </TouchableOpacity>
                                 </View>
-                                <Text style={styles.budgetAmount}>
-                                    Ngân sách: {budget.totalAmount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                                <Text style={tw`text-sm mt-2`}>
+                                    Ngân sách: {budget.amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', '')} đ
                                 </Text>
-                                <View style={styles.progressBar}>
-                                    <View
-                                        style={[
-                                            styles.progress,
-                                            {
-                                                width: getProgressBarWidth(remainingAmount, budget.totalAmount),
-                                                backgroundColor: progressColor,
-                                            },
-                                        ]}
-                                    />
-                                </View>
-                                <View style={styles.statusContainer}>
-                                    <Text style={[styles.budgetStatus, { color: budgetStatus.color }]}>
-                                        {budgetStatus.text}
-                                    </Text>
-                                    <Text style={[styles.budgetStatus, { color: progressColor }]}>
-                                        {progressText}
-                                    </Text>
-                                </View>
+
                             </View>
                         </TouchableOpacity>
                     );
                 })}
             </ScrollView>
 
-            {/* Modal xác nhận xóa */}
             <Modal
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
                 onRequestClose={cancelDelete}>
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Xác nhận xóa ngân sách</Text>
-                        <Text style={styles.modalMessage}>
-                            Bạn có chắc chắn muốn xóa ngân sách "{budgetToDelete?.name}" không?
+                <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+                    <View style={tw`bg-white p-5 rounded-lg w-4/5`}>
+                        <Text style={tw`text-xl font-bold mb-2`}>Xác nhận xóa ngân sách</Text>
+                        <Text style={tw`text-lg mb-4`}>
+                            Bạn có chắc chắn muốn xóa ngân sách "{budgetToDelete?.categoryId?.name}" không?
                         </Text>
-                        <View style={styles.modalButtonContainer}>
-                            <TouchableOpacity style={styles.modalButton} onPress={cancelDelete}>
-                                <Text style={styles.modalButtonText}>Hủy</Text>
+                        <View style={tw`flex-row justify-between`}>
+                            <TouchableOpacity style={tw`bg-purple-600 py-2 px-4 rounded`} onPress={cancelDelete}>
+                                <Text style={tw`text-white text-lg font-bold`}>Hủy</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.modalButton} onPress={confirmDelete}>
-                                <Text style={styles.modalButtonText}>Xóa</Text>
+                            <TouchableOpacity style={tw`bg-red-500 py-2 px-4 rounded`} onPress={confirmDelete}>
+                                <Text style={tw`text-white text-lg font-bold`}>Xóa</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -209,123 +189,3 @@ export default function BudgetScreen() {
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F5F5',
-    },
-    header: {
-        backgroundColor: '#6200EA',
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    headerText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    addButton: {
-        backgroundColor: '#9C27B0',
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 5,
-    },
-    addButtonText: {
-        color: '#fff',
-        fontSize: 16,
-    },
-    budgetList: {
-        flex: 1,
-        paddingHorizontal: 10,
-    },
-    budgetItem: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 15,
-        marginVertical: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    budgetHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    budgetIcon: {
-        width: 40,
-        height: 40,
-        marginRight: 10,
-    },
-    budgetName: {
-        flex: 1,
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    budgetAmount: {
-        marginVertical: 10,
-        fontSize: 16,
-    },
-    progressBar: {
-        height: 10,
-        backgroundColor: '#E0E0E0',
-        borderRadius: 5,
-        overflow: 'hidden',
-    },
-    progress: {
-        height: '100%',
-    },
-    statusContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    budgetStatus: {
-        fontSize: 14,
-    },
-    modalOverlay: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '80%',
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
-        alignItems: 'center',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    modalMessage: {
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    modalButtonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    modalButton: {
-        flex: 1,
-        padding: 10,
-        borderRadius: 5,
-        marginHorizontal: 5,
-        backgroundColor: '#6200EA',
-        alignItems: 'center',
-    },
-    modalButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-});

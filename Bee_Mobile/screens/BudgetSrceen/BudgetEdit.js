@@ -1,43 +1,101 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Modal, FlatList, SafeAreaView, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import tw from 'twrnc';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    Modal,
+    FlatList,
+    SafeAreaView,
+    ScrollView,
+    Image,
+    TouchableWithoutFeedback
+} from 'react-native';
 import { Button, Card } from 'react-native-paper';
-import DateTimePickerModal from 'react-native-modal-datetime-picker'; // Import thư viện
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { getCategories, updateBudget } from '../../services/Budget';
+import * as SecureStore from 'expo-secure-store';
+import { useNavigation } from '@react-navigation/native';
 
-const iconsList = [
-    { id: '1', source: require('../../assets/images/diet.png') },
-    { id: '2', source: require('../../assets/images/education.png') },
-    { id: '3', source: require('../../assets/images/healthy.png') },
-    { id: '4', source: require('../../assets/images/relaxation.png') },
-    { id: '5', source: require('../../assets/images/travel-luggage.png') },
-    { id: '6', source: require('../../assets/images/vehicle.png') },
-];
-
-// Hàm phân tích định dạng DD/MM/YYYY
-const parseDate = (dateString) => {
-    const [day, month, year] = dateString.split('/');
-    return new Date(year, month - 1, day);
+const formatCurrency = (amount) => {
+    return amount
+        ? new Intl.NumberFormat('vi-VN').format(amount) + ' đ'
+        : '0 đ'; // Nếu không có số tiền, trả về '0 đ'
 };
 
-const BudgetEdit = ({ route, navigation }) => {
+const BudgetEdit = ({ route }) => {
     const { budget } = route.params;
+    const navigation = useNavigation();
 
-    const [budgetName, setBudgetName] = useState(budget.name);
-    const [totalAmount, setTotalAmount] = useState(budget.totalAmount);
-    const [icon, setIcon] = useState(budget.icon);
-    const [startDate, setStartDate] = useState(parseDate(budget.startDate));
-    const [endDate, setEndDate] = useState(parseDate(budget.endDate));
+    const [amount, setAmount] = useState(budget.amount.toString());
+    const [categoryId, setCategoryId] = useState(budget.categoryId);
+    const [startDate, setStartDate] = useState(new Date(budget.startDate));
+    const [endDate, setEndDate] = useState(new Date(budget.endDate));
+    const [remainingBudget, setRemainingBudget] = useState(budget.remainingBudget.toString());
+    const [totalExpenses, setTotalExpenses] = useState(budget.totalExpenses.toString());
+    const [categories, setCategories] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [isStartDatePickerVisible, setStartDatePickerVisible] = useState(false);
     const [isEndDatePickerVisible, setEndDatePickerVisible] = useState(false);
+    const [isEditing, setIsEditing] = useState(false); // Trạng thái kiểm soát chế độ chỉnh sửa
 
-    const handleSave = () => {
-        // Thực hiện cập nhật ngân sách
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await getCategories();
+                if (response?.data && Array.isArray(response.data)) {
+                    // Filter categories to only include those with type 'expenses'
+                    const filteredCategories = response.data.filter((category) => category.type === 'expense');
+                    setCategories(filteredCategories);
+                } else {
+                    setCategories([]);
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error.message);
+                setCategories([]);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+
+    const handleSave = async () => {
+        const userId = await SecureStore.getItemAsync('userId');
+        try {
+            const updateData = {
+                amount: parseFloat(amount),
+                categoryId,
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                userId: userId,
+            };
+
+            await updateBudget(budget._id, updateData);
+            navigation.navigate('BudgetList', { refresh: true });
+            setIsEditing(false); // Đổi lại chế độ hiển thị sau khi lưu
+        } catch (error) {
+            console.error('Error saving budget:', error);
+        }
     };
 
-    const selectIcon = (selectedIcon) => {
-        setIcon(selectedIcon);
-        setModalVisible(false);
+    const handleCancel = () => {
+        setAmount(budget.amount.toString());
+        setCategoryId(budget.categoryId);
+        setStartDate(new Date(budget.startDate));
+        setEndDate(new Date(budget.endDate));
+        setRemainingBudget(budget.remainingBudget.toString());
+        setTotalExpenses(budget.totalExpenses.toString());
+        setIsEditing(false); // Hủy bỏ chỉnh sửa
     };
+
+    const calculateDays = (start, end) => {
+        const timeDifference = end - start;
+        return Math.ceil(timeDifference / (1000 * 3600 * 24)); // Chuyển đổi thành số ngày
+    };
+
+    const daysDifference = calculateDays(startDate, endDate);
 
     const handleConfirmStartDate = (date) => {
         setStartDate(date);
@@ -49,209 +107,162 @@ const BudgetEdit = ({ route, navigation }) => {
         setEndDatePickerVisible(false);
     };
 
+    const getCategoryNameById = (categoryId) => {
+        const category = categories.find((item) => item._id === categoryId);
+        return category ? category.name : 'Chọn danh mục';
+    };
+
+    // Hàm để đóng modal khi nhấn vào phần ngoài modal
+    const handleCloseModal = () => {
+        setModalVisible(false);
+    };
+
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView style={styles.budgetList}>
-                <Card style={styles.card}>
-                    <Card.Content>
-                        <Text style={styles.label}>Tên ngân sách</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={budgetName}
-                            onChangeText={setBudgetName}
-                            placeholder="Nhập tên ngân sách"
-                        />
-                    </Card.Content>
-                </Card>
-
-                <Card style={styles.card}>
-                    <Card.Content>
-                        <Text style={styles.label}>Số tiền</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={totalAmount.toString()}
-                            onChangeText={text => setTotalAmount(Number(text))}
-                            placeholder="Nhập số tiền"
-                            keyboardType="numeric"
-                        />
-                    </Card.Content>
-                </Card>
-
-                <Card style={styles.card}>
-                    <Card.Content>
-                        <Text style={styles.label}>Thời gian</Text>
-                        <View style={styles.dateContainer}>
-                            <View style={styles.dateInputContainer}>
-                                <Text style={styles.label}>Ngày bắt đầu</Text>
-                                <TouchableOpacity onPress={() => setStartDatePickerVisible(true)} style={styles.input}>
-                                    <Text>{startDate.toLocaleDateString('vi-VN')}</Text>
-                                </TouchableOpacity>
-                                <DateTimePickerModal
-                                    isVisible={isStartDatePickerVisible}
-                                    mode="date"
-                                    date={startDate}
-                                    onConfirm={handleConfirmStartDate}
-                                    onCancel={() => setStartDatePickerVisible(false)}
+        <SafeAreaView style={tw`flex-1 bg-white px-4`}>
+            <ScrollView contentContainerStyle={tw`pt-4 pb-8`}>
+                {/* Amount and Category */}
+                <View style={tw`flex-row justify-between mb-4`}>
+                    <Card style={tw`flex-1 rounded-lg shadow-md p-3 mr-2`}>
+                        <Card.Content>
+                            <Text style={tw`font-bold text-sm mb-2`}>Số tiền</Text>
+                            {isEditing ? (
+                                <TextInput
+                                    style={tw`border-b-2 border-gray-300 p-2 text-sm`}
+                                    value={amount}
+                                    onChangeText={setAmount}
+                                    placeholder="Nhập số tiền"
+                                    keyboardType="numeric"
                                 />
-                            </View>
-                            <View style={styles.dateInputContainer}>
-                                <Text style={styles.label}>Ngày kết thúc</Text>
-                                <TouchableOpacity onPress={() => setEndDatePickerVisible(true)} style={styles.input}>
-                                    <Text>{endDate.toLocaleDateString('vi-VN')}</Text>
-                                </TouchableOpacity>
-                                <DateTimePickerModal
-                                    isVisible={isEndDatePickerVisible}
-                                    mode="date"
-                                    date={endDate}
-                                    onConfirm={handleConfirmEndDate}
-                                    onCancel={() => setEndDatePickerVisible(false)}
-                                />
-                            </View>
+                            ) : (
+                                <Text style={tw`text-sm`}>{formatCurrency(amount)}</Text>
+                            )}
+                        </Card.Content>
+                    </Card>
+
+                    <Card style={tw`flex-1 rounded-lg shadow-md p-3 ml-2`}>
+                        <Card.Content>
+                            <Text style={tw`font-bold text-sm mb-2`}>Danh mục</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(true)}>
+                                <View style={tw`flex-row items-center`}>
+                                    <Image
+                                        source={{ uri: budget.categoryId?.image }}
+                                        style={tw`w-8 h-8 rounded-full mr-2`}
+                                    />
+                                    <Text style={tw`text-sm`}>
+                                        {budget.categoryId?.name || 'Không có tên'}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        </Card.Content>
+                    </Card>
+                </View>
+                <Card style={tw`mb-4 rounded-lg shadow-md p-1`}>
+                    <Card.Content>
+                        <Text style={tw`font-bold text-sm mb-2`}>Thời gian: {daysDifference} ngày</Text>
+                        <View style={tw`flex-row justify-between`}>
+                            <TouchableOpacity
+                                onPress={() => setStartDatePickerVisible(true)}
+                                style={tw`flex-1 border p-2 rounded-md bg-gray-100 mr-4`} // Thêm marginRight
+                            >
+                                <Text style={tw`text-sm`}>Ngày bắt đầu</Text>
+                                <Text style={tw`text-xs`}>{startDate.toLocaleDateString()}</Text>
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={isStartDatePickerVisible}
+                                mode="date"
+                                date={startDate}
+                                onConfirm={handleConfirmStartDate}
+                                onCancel={() => setStartDatePickerVisible(false)}
+                            />
+                            <TouchableOpacity
+                                onPress={() => setEndDatePickerVisible(true)}
+                                style={tw`flex-1 border p-2 rounded-md bg-gray-100`}
+                            >
+                                <Text style={tw`text-sm`}>Ngày kết thúc</Text>
+                                <Text style={tw`text-xs`}>{endDate.toLocaleDateString()}</Text>
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={isEndDatePickerVisible}
+                                mode="date"
+                                date={endDate}
+                                onConfirm={handleConfirmEndDate}
+                                onCancel={() => setEndDatePickerVisible(false)}
+                            />
                         </View>
                     </Card.Content>
                 </Card>
 
-                <Card style={styles.card}>
-                    <Card.Content>
-                        <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.iconContainer}>
-                            <Text style={styles.iconLabel}>Chọn danh mục: </Text>
-                            <Image source={icon} style={styles.icon} />
+                {/* Remaining Budget and Total Expenses */}
+                <View style={tw`flex-row justify-between mb-4`}>
+                    <Card style={tw`flex-1 rounded-lg shadow-md p-3 mr-2`}>
+                        <Card.Content>
+                            <Text style={tw`font-bold text-sm mb-2`}>Số dư còn lại</Text>
+                            <Text style={tw`text-sm`}>{formatCurrency(remainingBudget)}</Text>
+                        </Card.Content>
+                    </Card>
+
+                    <Card style={tw`flex-1 rounded-lg shadow-md p-3 ml-2`}>
+                        <Card.Content>
+                            <Text style={tw`font-bold text-sm mb-2`}>Tổng chi tiêu</Text>
+                            <Text style={tw`text-sm`}>{formatCurrency(totalExpenses)}</Text>
+                        </Card.Content>
+                    </Card>
+                </View>
+
+                {/* Edit and Save/Cancel Buttons */}
+                <View style={tw`flex-row justify-between mt-4`}>
+                    {!isEditing ? (
+                        <TouchableOpacity onPress={() => setIsEditing(true)} style={tw`flex-1 bg-blue-500 p-3 rounded-md`}>
+                            <Text style={tw`text-white text-center text-sm`}>Cập nhật</Text>
                         </TouchableOpacity>
-                    </Card.Content>
-                </Card>
-
-                <Button mode="contained" onPress={handleSave} style={styles.saveButton}>
-                    Lưu
-                </Button>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.cancelButton}>
-                    <Text style={styles.cancelText}>Hủy bỏ</Text>
-                </TouchableOpacity>
-
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Chọn biểu tượng danh mục</Text>
+                    ) : (
+                        <>
+                            <Button mode="contained" onPress={handleSave} style={tw`flex-1 bg-green-500 p-1 rounded-md ml-2`}>
+                                Lưu
+                            </Button>
+                            <TouchableOpacity onPress={handleCancel} style={tw`flex-1 bg-red-500 p-3 rounded-md ml-2`}>
+                                <Text style={tw`text-white text-center text-sm`}>Hủy</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+            </ScrollView>
+            <Modal visible={modalVisible} transparent onRequestClose={handleCloseModal}>
+                <TouchableWithoutFeedback onPress={handleCloseModal}>
+                    <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+                        <View style={tw`w-11/12 max-h-3/4 bg-white rounded-xl p-4`}>
+                            <Text style={tw`text-lg font-bold mb-4`}>Chọn danh mục</Text>
                             <FlatList
-                                data={iconsList}
-                                keyExtractor={item => item.id}
-                                numColumns={3}
+                                data={categories}
+                                keyExtractor={(item) => item._id}
+                                numColumns={3}  // Hiển thị 3 cột
                                 renderItem={({ item }) => (
-                                    <TouchableOpacity onPress={() => selectIcon(item.source)} style={styles.iconButton}>
-                                        <Image source={item.source} style={styles.modalIcon} />
+                                    <TouchableOpacity
+                                        style={tw`w-1/3 p-2`}  // Mỗi phần tử chiếm 1/3 chiều rộng
+                                        onPress={() => {
+                                            setCategoryId(item._id);
+                                            setModalVisible(false);
+                                        }}
+                                    >
+                                        <View style={tw`flex-1 bg-white rounded-lg shadow p-3 justify-center items-center`}>
+                                            {/* Hình ảnh của danh mục */}
+                                            <Image
+                                                source={{ uri: item.image }}
+                                                style={tw`w-16 h-16 rounded-full mb-2 mx-auto`}  // Thay đổi kích thước hình ảnh
+                                            />
+                                            {/* Tên danh mục */}
+                                            <Text style={tw`text-center text-sm flex-wrap`}>{item.name}</Text>
+                                        </View>
                                     </TouchableOpacity>
                                 )}
                             />
-                            <Button onPress={() => setModalVisible(false)} mode="text" style={styles.closeButton}>
-                                Đóng
-                            </Button>
                         </View>
                     </View>
-                </Modal>
-            </ScrollView>
+                </TouchableWithoutFeedback>
+            </Modal>
+
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 10,
-        backgroundColor: '#F5F5F5',
-    },
-    budgetList: {
-        flex: 1,
-        paddingHorizontal: 10,
-    },
-    card: {
-        marginBottom: 15,
-        borderRadius: 10,
-        elevation: 2,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 5,
-    },
-    input: {
-        height: 50,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        backgroundColor: '#fff',
-        justifyContent: 'center',
-    },
-    dateContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    dateInputContainer: {
-        flex: 1,
-        marginHorizontal: 5,
-    },
-    iconContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    icon: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-    },
-    iconLabel: {
-        marginRight: 10,
-        fontSize: 16,
-    },
-    saveButton: {
-        marginTop: 20,
-        paddingVertical: 5,
-        borderRadius: 5,
-    },
-    cancelButton: {
-        marginTop: 10,
-        alignItems: 'center',
-        padding: 10, // Thêm padding cho nút Hủy bỏ
-        borderWidth: 1,
-        borderColor: 'red', // Thêm đường viền cho nút Hủy bỏ
-        borderRadius: 5, // Thêm bo góc cho nút Hủy bỏ
-    },
-    cancelText: {
-        color: 'red',
-        fontSize: 16,
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '90%',
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
-        alignItems: 'center',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    iconButton: {
-        margin: 10,
-    },
-    modalIcon: {
-        width: 60,
-        height: 60,
-    },
-    closeButton: {
-        marginTop: 10,
-    },
-});
 
 export default BudgetEdit;

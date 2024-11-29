@@ -1,276 +1,189 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Modal, FlatList, Image } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Image } from 'react-native';
+import tw from 'twrnc';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
-export default function BudgetAdd({ navigation }) {
-    const { control, handleSubmit, formState: { errors } } = useForm();
-    const [modalVisible, setModalVisible] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [selectedCategoryImage, setSelectedCategoryImage] = useState(null);
-    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-    const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+import { addBudget, getCategories } from '../../services/Budget';
+import * as SecureStore from 'expo-secure-store';
+import { useNavigation } from '@react-navigation/native'; // Thêm useNavigation
+export default function AddBudget({}) {
+    const navigation = useNavigation();
+    const [budgetAmount, setBudgetAmount] = useState('');
     const [startDate, setStartDate] = useState(new Date());
     const [endDate, setEndDate] = useState(new Date());
+    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+    const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [categories, setCategories] = useState([]);
 
-    const categories = [
-        { id: '1', name: 'Ăn uống', source: require('../../assets/images/diet.png') },
-        { id: '2', name: 'Học tập', source: require('../../assets/images/education.png') },
-        { id: '3', name: 'Sức khỏe', source: require('../../assets/images/healthy.png') },
-        { id: '4', name: 'Thư giản', source: require('../../assets/images/relaxation.png') },
-        { id: '5', name: 'Du lịch', source: require('../../assets/images/travel-luggage.png') },
-        { id: '6', name: 'Di chuyển', source: require('../../assets/images/vehicle.png') },
-    ];
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await getCategories();
+                if (Array.isArray(data.data)) {
+                    // Filter categories with type 'expense'
+                    const expenseCategories = data.data.filter(category => category.type === 'expense');
+                    setCategories(expenseCategories);
+                } else {
+                    console.error('Dữ liệu danh mục không phải là mảng:', data);
+                    Alert.alert('Lỗi', 'Dữ liệu danh mục không hợp lệ.');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy danh mục:', error);
+                Alert.alert('Lỗi', 'Không thể lấy danh mục, vui lòng thử lại sau.');
+            }
+        };
+        fetchCategories();
+    }, []);
 
-    const onSubmit = (data) => {
-        console.log('Dữ liệu ngân sách mới:', { ...data, category: selectedCategory, categoryImage: selectedCategoryImage, startDate, endDate });
-        navigation.navigate('BudgetScreen');
+    const onChangeStartDate = (event, selectedDate) => {
+        const currentDate = selectedDate || startDate;
+        setShowStartDatePicker(Platform.OS === 'ios');
+        setStartDate(currentDate);
     };
 
-    const handleAmountChange = (onChange) => (value) => {
-        if (value && parseFloat(value) < 0) {
-            return; // Không cho phép số âm
+    const onChangeEndDate = (event, selectedDate) => {
+        const currentDate = selectedDate || endDate;
+        setShowEndDatePicker(Platform.OS === 'ios');
+        setEndDate(currentDate);
+    };
+
+    const handleNumericInput = (text, setState) => {
+        const numericValue = text.replace(/[^0-9]/g, '');
+        setState(numericValue);
+    };
+
+    const handleCategoryPress = (categoryId) => {
+        setSelectedCategory(categoryId);
+    };
+
+    const handleSaveBudget = async () => {
+        if (!budgetAmount || !selectedCategory) {
+            Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin');
+            return;
         }
-        onChange(value);
-    };
 
-    const renderCategoryItem = ({ item }) => (
-        <TouchableOpacity
-            style={styles.categoryItem}
-            onPress={() => {
-                setSelectedCategory(item.name);
-                setSelectedCategoryImage(item.source);
-                setModalVisible(false);
-            }}
-        >
-            <Image source={item.source} style={styles.categoryImage} />
-            <Text style={styles.categoryText}>{item.name}</Text>
-        </TouchableOpacity>
-    );
+        const userId = await SecureStore.getItemAsync('userId');
+
+        const newBudget = {
+            amount: parseInt(budgetAmount, 10),
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
+            categoryId: selectedCategory,
+            userId: userId,
+        };
+
+        try {
+            await addBudget(newBudget);
+            Alert.alert('Thành công', 'Ngân sách đã được lưu!', [
+                {
+                    text: 'OK',
+                    onPress: () => {
+                        // Sau khi lưu thành công, điều hướng về màn hình danh sách ngân sách
+                        navigation.navigate('BudgetList', { refresh: true });
+                    }
+                }
+            ]);
+            setBudgetAmount('');
+            setStartDate(new Date());
+            setEndDate(new Date());
+            setSelectedCategory('');
+        } catch (error) {
+            Alert.alert('Lỗi', error.message, [{ text: 'OK' }]);
+        }
+    };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.headerText}>Thêm mới ngân sách</Text>
+        <View style={tw`flex-1`}>
+            <ScrollView style={tw`p-5 flex-1`}>
+                <View style={tw`bg-white p-4 rounded-lg mb-4`}>
+                    <View style={tw`flex-row justify-between mb-3`}>
+                        <View style={{ flex: 1, marginRight: 5 }}>
+                            <Text style={tw`font-bold mb-1`}>Ngày bắt đầu</Text>
+                            <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+                                <TextInput
+                                    placeholder="Ngày bắt đầu"
+                                    value={startDate.toLocaleDateString()}
+                                    editable={false}
+                                    style={tw`border border-gray-300 p-3 rounded-lg`}
+                                />
+                            </TouchableOpacity>
+                            {showStartDatePicker && (
+                                <DateTimePicker
+                                    value={startDate}
+                                    mode="date"
+                                    display="default"
+                                    onChange={onChangeStartDate}
+                                />
+                            )}
+                        </View>
 
-            <View style={styles.inputContainer}>
-                <Text>Tên ngân sách</Text>
-                <Controller
-                    control={control}
-                    render={({ field: { onChange, onBlur, value } }) => (
-                        <TextInput
-                            style={styles.input}
-                            onBlur={onBlur}
-                            onChangeText={onChange}
-                            value={value}
-                            placeholder="Nhập tên ngân sách"
-                        />
-                    )}
-                    name="name"
-                    rules={{ required: 'Tên ngân sách là bắt buộc' }}
-                />
-                {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
-            </View>
+                        <View style={{ flex: 1, marginLeft: 5 }}>
+                            <Text style={tw`font-bold mb-1`}>Ngày kết thúc</Text>
+                            <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+                                <TextInput
+                                    placeholder="Ngày kết thúc"
+                                    value={endDate.toLocaleDateString()}
+                                    editable={false}
+                                    style={tw`border border-gray-300 p-3 rounded-lg`}
+                                />
+                            </TouchableOpacity>
+                            {showEndDatePicker && (
+                                <DateTimePicker
+                                    value={endDate}
+                                    mode="date"
+                                    display="default"
+                                    onChange={onChangeEndDate}
+                                />
+                            )}
+                        </View>
+                    </View>
 
-            <View style={styles.inputContainer}>
-                <Text>Số tiền</Text>
-                <Controller
-                    control={control}
-                    render={({ field: { onChange, onBlur, value } }) => (
-                        <TextInput
-                            style={styles.input}
-                            onBlur={onBlur}
-                            onChangeText={handleAmountChange(onChange)} // Sử dụng hàm mới
-                            value={value}
-                            placeholder="Nhập số tiền"
-                            keyboardType="numeric"
-                        />
-                    )}
-                    name="totalAmount"
-                    rules={{ required: 'Số tiền là bắt buộc' }}
-                />
-                {errors.totalAmount && <Text style={styles.errorText}>{errors.totalAmount.message}</Text>}
-            </View>
-
-            <View style={styles.inputContainer}>
-                <Text>Danh mục</Text>
-                <TouchableOpacity style={styles.iconPicker} onPress={() => setModalVisible(true)}>
-                    {selectedCategoryImage && <Image source={selectedCategoryImage} style={styles.selectedCategoryImage} />}
-                    <Text>{selectedCategory ? selectedCategory : 'Chọn danh mục'}</Text>
-                    <Icon name="chevron-down" size={20} color="#000" />
-                </TouchableOpacity>
-            </View>
-
-            {/* Đặt hai ô input ngày bắt đầu và ngày kết thúc trên cùng một hàng */}
-            <View style={styles.dateInputContainer}>
-                <View style={styles.dateInputWrapper}>
-                    <Text>Ngày bắt đầu</Text>
-                    <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
-                        <TextInput
-                            style={styles.input}
-                            editable={false}
-                            value={startDate.toLocaleDateString()} // Hiển thị ngày
-                        />
-                    </TouchableOpacity>
-                    {showStartDatePicker && (
-                        <DateTimePicker
-                            value={startDate}
-                            mode="date"
-                            display="default"
-                            onChange={(event, selectedDate) => {
-                                if (selectedDate) {
-                                    setStartDate(selectedDate);
-                                }
-                                setShowStartDatePicker(false);
-                            }}
-                        />
-                    )}
-                </View>
-
-                <View style={styles.dateInputWrapper}>
-                    <Text>Ngày kết thúc</Text>
-                    <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
-                        <TextInput
-                            style={styles.input}
-                            editable={false}
-                            value={endDate.toLocaleDateString()} // Hiển thị ngày
-                        />
-                    </TouchableOpacity>
-                    {showEndDatePicker && (
-                        <DateTimePicker
-                            value={endDate}
-                            mode="date"
-                            display="default"
-                            onChange={(event, selectedDate) => {
-                                if (selectedDate) {
-                                    setEndDate(selectedDate);
-                                }
-                                setShowEndDatePicker(false);
-                            }}
-                        />
-                    )}
-                </View>
-            </View>
-
-            <Button title="Lưu ngân sách" onPress={handleSubmit(onSubmit)} />
-
-            {/* Modal chọn danh mục */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => {
-                    setModalVisible(!modalVisible);
-                }}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalHeader}>Chọn danh mục</Text>
-                        <FlatList
-                            data={categories}
-                            renderItem={renderCategoryItem}
-                            keyExtractor={(item) => item.id}
-                        />
-                        <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-                            <Text style={styles.closeButtonText}>Đóng</Text>
-                        </TouchableOpacity>
+                    <View style={tw`flex-row justify-between mb-3`}>
+                        <View style={{ flex: 1, marginRight: 5 }}>
+                            <Text style={tw`font-bold mb-1`}>Số tiền ngân sách</Text>
+                            <TextInput
+                                placeholder="Số tiền ngân sách"
+                                value={budgetAmount}
+                                onChangeText={(text) => handleNumericInput(text, setBudgetAmount)}
+                                keyboardType="numeric"
+                                style={tw`border border-gray-300 p-3 rounded-lg`}
+                            />
+                        </View>
                     </View>
                 </View>
-            </Modal>
+
+                <View style={tw`bg-white p-4 rounded-lg mb-4`}>
+                    <Text style={tw`font-bold text-lg mb-3`}>Danh mục</Text>
+                    <View style={tw`flex-row flex-wrap justify-between`}>
+                        {Array.isArray(categories) && categories.length > 0 ? (
+                            categories.map((category) => (
+                                <TouchableOpacity
+                                    key={category._id}
+                                    style={tw`w-1/3 p-3 border border-gray-300 rounded-lg mb-3 items-center ${selectedCategory === category._id ? 'bg-gray-200' : ''}`}
+                                    onPress={() => handleCategoryPress(category._id)}
+                                >
+                                    {category.image && (
+                                        <Image
+                                            source={{ uri: category.image }}
+                                            style={tw`w-10 h-10 rounded-full mb-2`}
+                                        />
+                                    )}
+                                    <Text>{category.name}</Text>
+                                </TouchableOpacity>
+                            ))
+                        ) : (
+                            <Text>Không có danh mục nào để hiển thị</Text>
+                        )}
+                    </View>
+                </View>
+
+                <TouchableOpacity
+                    onPress={handleSaveBudget}
+                    style={tw`bg-blue-500 p-4 rounded-lg items-center mb-8`}
+                >
+                    <Text style={tw`text-white font-bold`}>Lưu ngân sách</Text>
+                </TouchableOpacity>
+            </ScrollView>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#F5F5F5',
-    },
-    headerText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    inputContainer: {
-        marginBottom: 15,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        padding: 10,
-        backgroundColor: '#fff',
-    },
-    iconPicker: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        padding: 10,
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-    },
-    selectedCategoryImage: {
-        width: 40,
-        height: 40,
-        marginRight: 10,
-    },
-    errorText: {
-        color: 'red',
-        marginTop: 5,
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '80%',
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 20,
-    },
-    modalHeader: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    categoryItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 10,
-    },
-    categoryImage: {
-        width: 40,
-        height: 40,
-        marginRight: 10,
-    },
-    categoryText: {
-        fontSize: 16,
-    },
-    closeButton: {
-        marginTop: 10,
-        backgroundColor: '#2196F3',
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    closeButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    dateInputContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between', // Đảm bảo khoảng cách đều giữa hai ô input
-        marginBottom: 15,
-    },
-    dateInputWrapper: {
-        flex: 1,
-        marginHorizontal: 5, // Giảm khoảng cách giữa các ô input
-    },
-});
