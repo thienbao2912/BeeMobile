@@ -1,31 +1,90 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+  Alert,
+} from "react-native";
 import Svg, { Ellipse } from "react-native-svg";
-import { ProgressBar } from "react-native-paper";
 import tw from "twrnc";
-import { fetchAllSavingGoals } from "../../services/SavingsGoalService/index";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import * as SecureStore from "expo-secure-store";
+import {
+  fetchAllSavingGoalsByUser,
+  deleteSavingGoal,
+} from "../../services/SavingsGoalService/index";
+import { showMessage } from 'react-native-flash-message';
 
 export default function SavingGoalScreen({ navigation }) {
   const [savingGoals, setSavingGoals] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadSavingGoals = async () => {
-      try {
-        const goals = await fetchAllSavingGoals();
-        setSavingGoals(goals);
-      } catch (error) {
-        console.error("Error loading saving goals", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadSavingGoals = async () => {
+    try {
+      const userId = await SecureStore.getItemAsync("userId");
+      if (userId) {
+        const goals = await fetchAllSavingGoalsByUser(userId);
 
-    loadSavingGoals();
-  }, []);
+        const goalsWithImages = await Promise.all(
+          goals.map(async (goal) => {
+            return { ...goal };
+          })
+        );
+
+        setSavingGoals(goalsWithImages);
+      }
+    } catch (error) {
+      console.error("Error loading saving goals", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      loadSavingGoals();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const confirmDeleteGoal = (goalId) => {
+    Alert.alert(
+      "Xác nhận xóa",
+      "Bạn có chắc chắn muốn xóa mục tiêu tiết kiệm này?",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa",
+          onPress: () => handleDeleteGoal(goalId),
+          style: "destructive",
+        },
+      ]
+    );
+  };
+
+  const handleDeleteGoal = async (goalId) => {
+    try {
+      await deleteSavingGoal(goalId);
+      setSavingGoals(savingGoals.filter((goal) => goal._id !== goalId));
+      showMessage({
+        message: "Xóa thành công!",
+        type: "success",
+    });
+    } catch (error) {
+      console.error("Error deleting saving goal:", error);
+    }
+  };
 
   const navigateToDetail = (goal) => {
-    navigation.navigate('SavingGoalDetail', { goal });
+    navigation.navigate("SavingGoalDetail", { goal });
+  };
+
+  const navigateToEdit = (goal) => {
+    navigation.navigate("SavingGoalEdit", { goal });
   };
 
   if (loading) {
@@ -46,8 +105,9 @@ export default function SavingGoalScreen({ navigation }) {
             fill="none"
           />
         </Svg>
-
-        <Text style={tw`absolute top-13 text-base text-center`}>bạn cần tiết kiệm</Text>
+        <Text style={tw`absolute top-13 text-base text-center`}>
+          bạn cần tiết kiệm
+        </Text>
         <Text style={tw`absolute top-18 text-base`}>3,000,000 đ</Text>
       </View>
 
@@ -67,7 +127,7 @@ export default function SavingGoalScreen({ navigation }) {
 
       <TouchableOpacity
         style={tw`bg-purple-600 px-4 py-2 rounded-full`}
-        onPress={() => navigation.navigate('SavingGoalAdd')}
+        onPress={() => navigation.navigate("SavingGoalAdd")}
       >
         <Text style={tw`text-white text-base font-bold`}>Thêm mục tiêu</Text>
       </TouchableOpacity>
@@ -75,7 +135,7 @@ export default function SavingGoalScreen({ navigation }) {
       <View style={tw`w-full mt-3 pl-2 pr-2`}>
         {savingGoals.map((goal, index) => {
           const progress = goal.currentAmount / goal.targetAmount;
-          const progressPercentage = Math.floor(progress * 100);
+          const progressPercentage = Math.floor(progress * 100 || 0);
 
           let progressBarColor = "red";
           if (progress >= 0.8) {
@@ -93,12 +153,6 @@ export default function SavingGoalScreen({ navigation }) {
           } else if (progress === 0) {
             statusText = "Chưa tiết kiệm";
             statusColor = "red";
-          } else if (progress >= 0.8) {
-            statusText = `Còn lại ${100 - progressPercentage}%`;
-            statusColor = "green";
-          } else if (progress <= 0.2) {
-            statusText = `Còn lại ${100 - progressPercentage}%`;
-            statusColor = "red";
           } else {
             statusText = `Còn lại ${100 - progressPercentage}%`;
             statusColor = "green";
@@ -110,11 +164,8 @@ export default function SavingGoalScreen({ navigation }) {
               onPress={() => navigateToDetail(goal)}
               style={tw`border rounded-lg p-4 mb-4 bg-white`}
             >
-              <View style={tw`flex-row items-center`}>
-                <Image
-                  source={require("../../assets/images/favicon.png")}
-                  style={tw`w-12 h-12 rounded-full mr-4`}
-                />
+              <View style={tw`flex-row items-center justify-between`}>
+                <Image style={tw`w-12 h-12 rounded-full mr-4`} />
                 <View style={tw`flex-1`}>
                   <Text style={tw`font-bold text-lg`}>{goal.name}</Text>
                   <Text style={tw`text-gray-500`}>
@@ -122,13 +173,30 @@ export default function SavingGoalScreen({ navigation }) {
                     {(goal.targetAmount || 0).toLocaleString()}đ
                   </Text>
                 </View>
+                <TouchableOpacity onPress={() => confirmDeleteGoal(goal._id)}>
+                  <Icon name="delete" size={24} color="red" />
+                </TouchableOpacity>
               </View>
 
-              <ProgressBar
-                progress={progress}
-                color={progressBarColor}
-                style={tw`h-2 rounded-full mt-2`}
-              />
+              {/* Custom Progress Bar */}
+              <View style={tw`mt-3`}>
+                <View
+                  style={[
+                    tw`h-2 rounded-full`,
+                    { backgroundColor: "#e0e0e0" }, // Background
+                  ]}
+                >
+                  <View
+                    style={[
+                      tw`h-full rounded-full`,
+                      {
+                        width: `${Math.min(progressPercentage, 100)}%`, // Giới hạn tiến độ tối đa là 100%
+                        backgroundColor: progressBarColor,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
 
               <View style={tw`flex-row justify-between mt-1`}>
                 <Text

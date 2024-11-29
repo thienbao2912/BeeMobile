@@ -11,7 +11,15 @@ import BudgetDetail from '../screens/BudgetSrceen/BudgetDetail';
 import ProfileScreen from '../screens/ProfileScreen';
 import TransactionScreen from '../screens/TransactionScreen';
 import SavingGoalStackScreen from './SavingGoalStackScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import TransactionStackScreen from './TransactionStack'
+import SavingGoalStackScreen from './SavingGoalStackScreen';
+import MaterialIcon from "react-native-vector-icons/MaterialIcons";
+import AppStack from "./AppStack";
+import BudgetScreen from "../screens/BudgetScreen";
+// import ExpenseDetail from "../screens/TransactionSrceen/ExpenseSrceen/ExpenseDetail";
 
+import Home from "../screens/HomeSreen/Home";
 const Tab = createBottomTabNavigator();
 
 const Stack = createStackNavigator();
@@ -66,6 +74,10 @@ function TabNavigator() {
           iconName = "user";
           IconComponent = FontAwesomeIcon;
         }
+        //  else if(route.name === "danh mục") {
+        //   iconName = 'category';
+        //   IconComponent = FontAwesomeIcon;
+        // }
 
         return {
           tabBarIcon: ({ focused, color, size }) => (
@@ -79,11 +91,11 @@ function TabNavigator() {
         };
       }}
     >
-      <Tab.Screen name="Tổng quan" component={HomeScreen} />
+      <Tab.Screen name="Tổng quan" component={AppStack} />
       <Tab.Screen name="Mục tiêu" component={SavingGoalStackScreen} />
       <Tab.Screen
         name="Giao dịch"
-        component={TransactionScreen}
+        component={TransactionStackScreen}
         options={{
           tabBarLabel: () => null,
           tabBarIcon: ({ focused }) => (
@@ -96,7 +108,14 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen name="Ngân sách" component={BudgetStackScreen} />
+        {/* <TransactionStack.Screen 
+              name="ExpenseDetail" 
+              component={ExpenseDetail} 
+              options={{ title: 'Chi tiết' }} 
+            /> */}
+      {/* <Tab.Screen name="Ngân sách" component={BudgetScreen} /> */}
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
+      {/* <Tab.Screen name="danh mục" component={CategoriesStackScreen} /> */}
     </Tab.Navigator>
   );
 }

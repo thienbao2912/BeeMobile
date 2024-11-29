@@ -1,8 +1,24 @@
-const express = require('express');
-const { getAllSavingsGoals, addSavingsGoal } = require('../controllers/SavingsGoalController');
+const express = require("express");
+const {
+  depositToSavingGoal,
+  getAllSavingsGoalsByUser,
+  updateSavingsGoal,
+  addSavingsGoal,
+  getSavingGoalById,
+  deleteSavingGoal,
+  addTransaction,
+} = require("../controllers/SavingsGoalController");
 const router = express.Router();
 
-router.get('/goals', getAllSavingsGoals);
-router.post('/goals', addSavingsGoal);
+router.get("/goals/:userId", getAllSavingsGoalsByUser);
+
+router.post("/goals", addSavingsGoal);
+
+router.get("/goals/detail/:goalId", getSavingGoalById);
+
+router.put("/goals/:goalId", updateSavingsGoal);
+
+router.delete("/goals/:goalId", deleteSavingGoal);
+router.post('/goals/transaction', addTransaction);
 
 module.exports = router;

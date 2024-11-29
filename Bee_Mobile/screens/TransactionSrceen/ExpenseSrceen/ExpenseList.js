@@ -1,163 +1,208 @@
-import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Text, TouchableOpacity, Image, ActivityIndicator, Alert } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import * as SecureStore from 'expo-secure-store';
+import CustomDeleteModal from '../../../components/Popup';
+import { fetchAllTransactions, deleteTransaction } from "../../../services/Transaction";
+import tw from "twrnc";
+import { SwipeListView, SectionList } from 'react-native-swipe-list-view';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function ExpenseList() {
-  const navigation = useNavigation();
+export default function ExpenseList({ route, navigation }) {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  const expenses = [
-    {
-      id: 1,
-      category: { id: 1, name: 'Ăn uống là cái gì có quan trọng không', image: require('../../../assets/images/diet.png')  },
-      description: 'Ăn trưa với bạn bè tôi không biết nữa nè vị sao hả, rồi sao nữa',
-      amount: 120000,
-      date: '08-10-2024',
-    },
-    {
-      id: 2,
-      category: { id: 2, name: 'Di chuyển', image: require('../../../assets/images/vehicle.png') },
-      description: 'Taxi về nhà',
-      amount: 50000,
-      date: '07-10-2024',
-    },
-    {
-      id: 3,
-      category: { id: 3, name: 'Uống', image: require('../../../assets/images/cocktail.png') },
-      description: 'Nước ép dâu',
-      amount: 300000,
-      date: '07-10-2024',
-    },
-  ];
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
-  const truncateText = (text, maxLength) => {
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [transaction, setTransaction] = useState(null);
+  const filters = ["Tất cả", "Khoảng tiền", "Khoảng thời gian"];
+
+  const handleOpenModal = (transaction) => {
+    setTransaction(transaction);
+    setIsModalVisible(true);
   };
 
-  const expensesByDate = expenses.reduce((groupedExpenses, expense) => {
-    const { date } = expense;
-    if (!groupedExpenses[date]) {
-      groupedExpenses[date] = [];
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setTransaction(null);
+  };
+
+ 
+  useEffect(() => {
+    const loadUserId = async () => {
+      const id = await SecureStore.getItemAsync('userId');
+      setUserId(id);
+    };
+    loadUserId();
+  }, []);
+
+  const loadTransactions = async () => {
+    if (userId) {
+      try {
+        const data = await fetchAllTransactions();
+        const filteredTransactions = data.filter(transaction => transaction.userId === userId);
+        filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setTransactions(filteredTransactions);
+      } catch (error) {
+        console.error("Error loading data", error);
+      } finally {
+        setLoading(false);
+      }
     }
-    groupedExpenses[date].push(expense);
-    return groupedExpenses;
-  }, {});
+  };
 
-  return (
-    <View style={{ flex: 1, padding: 10 }}>
-      <ScrollView>
-        {Object.keys(expensesByDate).map((date) => (
-          <View key={date}>
-            <View style={styles.dateBadge}>
-              <Text style={styles.dateBadgeText}>{date}</Text>
-            </View>
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.refresh) {
+        setLoading(true);
+        loadTransactions();
+      }
+    }, [route.params?.refresh, userId])
+  );
 
-            {expensesByDate[date].map((expense) => (
-              <TouchableOpacity
-                key={expense.id}
-                activeOpacity={0.7}
-                style={styles.expenseItem}
-                onPress={() => navigation.navigate('ExpenseDetail', { expense })}
-              >
-                <View style={styles.iconWrapper}>
-                  <Image
-                    source={expense.category.image}
-                    style={styles.icon}
-                  />
-                </View>
-                <View style={styles.expenseDetails}>
-                  <Text style={styles.categoryName}>
-                    {truncateText(expense.category.name, 14)}
-                  </Text>
-                  <Text style={styles.description}>
-                    {truncateText(expense.description, 20)}
-                  </Text>
-                </View>
-                <View style={styles.dateAmountWrapper}>
-                  <Text style={styles.amount}>- {expense.amount.toLocaleString('vi-VN')} đ</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
-      </ScrollView>
+  useEffect(() => {
+    loadTransactions();
+  }, [userId]);
 
-      <TouchableOpacity 
-        style={styles.addButton} 
-        onPress={() => navigation.navigate('ExpenseAdd')}
+  const handleDetail = () => {
+    if (selectedTransaction) {
+      navigation.navigate('ExpenseDetail', { transaction: selectedTransaction });
+    }
+  };
+
+  const handleEdit = (transaction) => {
+    if (transaction.type === 'expense') {
+      navigation.navigate('ExpenseEdit', { transactionId: transaction._id });
+    } else if (transaction.type === 'income') {
+      navigation.navigate('IncomeEdit', { transactionId: transaction._id });
+    }
+  };
+
+  const cancelDeleteExpense = () => {
+    setIsModalVisible(false);
+    setSelectedTransaction(null);
+  };
+
+  const handleDelete = (transaction) => {
+    setSelectedTransaction(transaction);
+    setIsModalVisible(true);
+  };
+
+  const confirmDeleteExpense = async () => {
+    if (!selectedTransaction) return;
+
+    // console.log("Deleting transaction with ID: ", selectedTransaction._id);
+
+    try {
+      await deleteTransaction(selectedTransaction._id);
+      loadTransactions();
+      // Alert.alert("Giao dịch đã được xóa thành công");
+    } catch (error) {
+      console.error('Lỗi xóa giao dịch', error);
+      Alert.alert("Lỗi xóa giao dịch");
+    } finally {
+      setIsModalVisible(false);setSelectedTransaction(null);
+    }
+  };
+
+  const groupedTransactions = Object.entries(
+    transactions.reduce((acc, transaction) => {
+      const date = new Date(transaction.date).toLocaleDateString();
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(transaction);
+      return acc;
+    }, {})
+  ).map(([date, transactions]) => ({ date, data: transactions }));
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      activeOpacity={1}
+      style={tw`flex-row items-center bg-white rounded-lg p-2.5 mb-3 mx-1`}
+      onPress={() => {
+        setSelectedTransaction(item);
+        handleDetail();
+      }}
+    >
+      <View style={tw`p-1.5 mr-4 rounded-2 bg-indigo-50`}>
+        <Image
+          source={{ uri: item.categoryId?.image || require('../../../assets/images/rabbit.png') }}
+          style={tw`w-10 h-10`}
+        />
+      </View>
+      <View style={tw`flex-1`}>
+        <Text style={tw`text-lg font-bold mb-1`}>
+          {item.categoryId ? (item.categoryId.name.length > 20 ? item.categoryId.name.substring(0, 20) + '...' : item.categoryId.name) : 'Tên danh mục'}
+        </Text>
+        <Text style={tw`text-base text-gray-600`}>
+          {item.description.length > 18 ? item.description.substring(0, 18) + '...' : item.description}
+        </Text>
+      </View>
+      <View style={tw`items-end`}>
+        <Text style={[tw`text-lg font-medium`, item.type === 'expense' ? tw`text-red-600` : tw`text-green-600`]}>
+          {item.type === 'expense' ? '-' : '+'}
+          {new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(item.amount)}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderHiddenItem = (data) => (
+    <View style={tw`flex-row justify-end rounded-lg`}>
+      <TouchableOpacity
+        style={tw`bg-green-400 justify-center items-center w-20 h-18 rounded-lg`}
+        onPress={() => handleEdit(data.item)}
       >
-        <Text style={styles.addButtonText}>Thêm Chi Tiêu</Text>
+        <Ionicons name="pencil" size={24} color="white" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={tw`bg-red-400 justify-center items-center w-20 h-18 rounded-lg mr-1`}
+        onPress={() => handleDelete(data.item)}
+      >
+        <Ionicons name="trash" size={24} color="white" />
       </TouchableOpacity>
     </View>
   );
-}
 
-const styles = StyleSheet.create({
-  dateBadge: {
-    backgroundColor: '#d3d8f8', 
-    padding: 5, 
-    borderRadius: 10,
-    marginHorizontal: 5,
-    marginVertical: 10,
-    alignSelf: 'flex-start',
-  },
-  dateBadgeText: {
-    color: '#fff', 
-    fontWeight: 'bold',
-    fontSize: 12, 
-  },
-  expenseItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-    marginHorizontal: 5,
-  },
-  iconWrapper: {
-    padding: 5,
-    marginRight: 15,
-    borderRadius: 11,
-    backgroundColor: '#F2F3FF',
-  },
-  icon: {
-    width: 40,
-    height: 40,
-  },
-  expenseDetails: {
-    flex: 1,
-  },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  description: {
-    fontSize: 14,
-    color: '#7f8c8d',
-  },
-  dateAmountWrapper: {
-    alignItems: 'flex-end',
-  },
-  amount: {
-    fontSize: 17,
-    fontWeight: '500',
-    color: '#e74c3c',
-  },
-  addButton: {
-    backgroundColor: '#5A5DD1', 
-    padding: 15,
-    borderRadius: 10,
-    margin: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
+  const renderSectionHeader = ({ section: { date } }) => (
+    <View style={tw`p-2 bg-indigo-200 rounded-full self-start mt-2 mb-2 ml-2`}>
+      <Text style={tw`text-xs text-white font-semibold`}>{date}</Text>
+    </View>
+  );
+
+  if (loading) {
+    return <ActivityIndicator size={40} color="#0000ff" />;
+  }
+
+  return (
+    <>
+      <SwipeListView
+        useSectionList
+        sections={groupedTransactions}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+        renderHiddenItem={renderHiddenItem}
+        renderSectionHeader={renderSectionHeader}
+        rightOpenValue={-150}
+        stopRightSwipe={-150}
+        previewRowKey={"0"}
+        previewOpenValue={-40}previewOpenDelay={3000}
+        disableRightSwipe
+      />
+      <CustomDeleteModal
+        isVisible={isModalVisible}
+        onConfirm={confirmDeleteExpense}
+        onCancel={cancelDeleteExpense}
+        message="Bạn chắc chắn xóa giao dịch này?"
+      />
+    </>
+  );
+}

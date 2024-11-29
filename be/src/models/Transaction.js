@@ -6,7 +6,7 @@ const TransactionSchema = new Schema({
         ref: 'User',
         required: true
     },
-    "amount": {type: String, required: true},
+    "amount": {type: Number, required: true},
     "date": {type: Date, required: true},
     "type": {type: String, required: true},
     "categoryId": {type: Schema.Types.ObjectId, ref: 'Category'},
