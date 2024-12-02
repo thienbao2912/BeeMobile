@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, ActivityIndicator, Alert } from 'r
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomDeleteModal from '../../../components/Popup';
 import { deleteTransaction } from '../../../services/Transaction';
+import { showMessage } from 'react-native-flash-message';
 import tw from "twrnc";
 
 export default function ExpenseDetail({ route, navigation }) {
@@ -36,6 +37,10 @@ export default function ExpenseDetail({ route, navigation }) {
     try {
       await deleteTransaction(transaction._id);
       navigation.navigate('ExpenseList', { refresh: true });
+      showMessage({
+        message: "Xóa thành công!",
+        type: "success",
+    });
     } catch (error) {
       console.error('Lỗi xóa giao dịch', error);
       Alert.alert("Lỗi xóa giao dịch");
