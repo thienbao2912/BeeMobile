@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = 'http://172.16.30.151:4000/api';
+const API_URL = 'http://172.16.8.126:4000/api';
 
 export const fetchCategoryImage = async (categoryId) => {
     try {

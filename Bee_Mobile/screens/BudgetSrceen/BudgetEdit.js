@@ -18,10 +18,11 @@ import { getCategories, updateBudget } from '../../services/Budget';
 import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
 
+// Utility function to format the number as currency
 const formatCurrency = (amount) => {
     return amount
-        ? new Intl.NumberFormat('vi-VN').format(amount) + ' đ'
-        : '0 đ'; // Nếu không có số tiền, trả về '0 đ'
+        ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
+        : '0 VNĐ';
 };
 
 const BudgetEdit = ({ route }) => {
@@ -72,6 +73,9 @@ const BudgetEdit = ({ route }) => {
                 userId: userId,
             };
 
+            console.log("amount", amount);
+            console.log("categoryId", categoryId);
+
             await updateBudget(budget._id, updateData);
             navigation.navigate('BudgetList', { refresh: true });
             setIsEditing(false); // Đổi lại chế độ hiển thị sau khi lưu
@@ -117,19 +121,29 @@ const BudgetEdit = ({ route }) => {
         setModalVisible(false);
     };
 
+    const handleAmountChange = (text) => {
+        // Xóa bỏ tất cả các ký tự không phải là số
+        let formattedText = text.replace(/[^\d]/g, '');
+        // Chia số thành các nhóm ba chữ số với dấu phẩy
+        if (formattedText) {
+            formattedText = new Intl.NumberFormat('vi-VN').format(formattedText);
+        }
+        setAmount(formattedText);
+    };
+
     return (
         <SafeAreaView style={tw`flex-1 bg-white px-4`}>
             <ScrollView contentContainerStyle={tw`pt-4 pb-8`}>
                 {/* Amount and Category */}
                 <View style={tw`flex-row justify-between mb-4`}>
-                    <Card style={tw`flex-1 rounded-lg shadow-md p-3 mr-2`}>
+                <Card style={tw`flex-1 rounded-lg shadow-md p-3 mr-2`}>
                         <Card.Content>
                             <Text style={tw`font-bold text-sm mb-2`}>Số tiền</Text>
                             {isEditing ? (
                                 <TextInput
                                     style={tw`border-b-2 border-gray-300 p-2 text-sm`}
-                                    value={amount}
-                                    onChangeText={setAmount}
+                                    value={formatCurrency(amount)}
+                                    onChangeText={handleAmountChange} // Cập nhật với giá trị định dạng
                                     placeholder="Nhập số tiền"
                                     keyboardType="numeric"
                                 />
@@ -142,7 +156,19 @@ const BudgetEdit = ({ route }) => {
                     <Card style={tw`flex-1 rounded-lg shadow-md p-3 ml-2`}>
                         <Card.Content>
                             <Text style={tw`font-bold text-sm mb-2`}>Danh mục</Text>
-                            <TouchableOpacity onPress={() => setModalVisible(true)}>
+                            {isEditing ? (
+                                <TouchableOpacity onPress={() => setModalVisible(true)}>
+                                    <View style={tw`flex-row items-center`}>
+                                        <Image
+                                            source={{ uri: categories.find((cat) => cat._id === categoryId)?.image || budget.categoryId?.image }}
+                                            style={tw`w-8 h-8 rounded-full mr-2`}
+                                        />
+                                        <Text style={tw`text-sm`}>
+                                            {categories.find((cat) => cat._id === categoryId)?.name || budget.categoryId?.name || 'Không có tên'}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ) : (
                                 <View style={tw`flex-row items-center`}>
                                     <Image
                                         source={{ uri: budget.categoryId?.image }}
@@ -152,9 +178,10 @@ const BudgetEdit = ({ route }) => {
                                         {budget.categoryId?.name || 'Không có tên'}
                                     </Text>
                                 </View>
-                            </TouchableOpacity>
+                            )}
                         </Card.Content>
                     </Card>
+
                 </View>
                 <Card style={tw`mb-4 rounded-lg shadow-md p-1`}>
                     <Card.Content>
@@ -209,24 +236,23 @@ const BudgetEdit = ({ route }) => {
                     </Card>
                 </View>
 
-                {/* Edit and Save/Cancel Buttons */}
-                <View style={tw`flex-row justify-between mt-4`}>
-                    {!isEditing ? (
-                        <TouchableOpacity onPress={() => setIsEditing(true)} style={tw`flex-1 bg-blue-500 p-3 rounded-md`}>
-                            <Text style={tw`text-white text-center text-sm`}>Cập nhật</Text>
+                {/* Action buttons */}
+                {isEditing ? (
+                    <View style={tw`w-full flex-row justify-between`}>
+                        <TouchableOpacity onPress={handleCancel} style={tw`bg-gray-400 p-3 rounded-lg w-[48%]`}>
+                            <Text style={tw`text-white text-center`}>Hủy bỏ</Text>
                         </TouchableOpacity>
-                    ) : (
-                        <>
-                            <Button mode="contained" onPress={handleSave} style={tw`flex-1 bg-green-500 p-1 rounded-md ml-2`}>
-                                Lưu
-                            </Button>
-                            <TouchableOpacity onPress={handleCancel} style={tw`flex-1 bg-red-500 p-3 rounded-md ml-2`}>
-                                <Text style={tw`text-white text-center text-sm`}>Hủy</Text>
-                            </TouchableOpacity>
-                        </>
-                    )}
-                </View>
+                        <TouchableOpacity onPress={handleSave} style={tw`bg-blue-500 p-3 rounded-lg w-[48%]`}>
+                            <Text style={tw`text-white text-center`}>Lưu</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <TouchableOpacity onPress={() => setIsEditing(true)} style={tw`bg-green-500 p-3 rounded-lg`}>
+                        <Text style={tw`text-white text-center`}>Chỉnh sửa</Text>
+                    </TouchableOpacity>
+                )}
             </ScrollView>
+
             <Modal visible={modalVisible} transparent onRequestClose={handleCloseModal}>
                 <TouchableWithoutFeedback onPress={handleCloseModal}>
                     <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
