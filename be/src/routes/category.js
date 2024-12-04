@@ -1,5 +1,5 @@
 const CategoryController = require("../controllers/categoryController");
-const middlewareController = require("../middleware/auth");
+const middlewareController = require("../middleware/Auth");
 
 const router = require("express").Router();
 

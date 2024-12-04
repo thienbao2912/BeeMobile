@@ -18,6 +18,7 @@ import moment from 'moment';
 import 'moment/locale/vi'; 
 import { fetchTransactionById, editTransaction, fetchAllCategories } from "../../../services/Transaction"; 
 import * as SecureStore from 'expo-secure-store';
+import { showMessage } from 'react-native-flash-message';
 import tw from "twrnc";
 
 moment.locale('vi');
@@ -171,8 +172,16 @@ const IncomeEdit = () => {
       await editTransaction(transactionId, updatedIncome);
       // Alert.alert("Cập nhật thành công");
       navigation.navigate('ExpenseList', { refresh: true});
+      showMessage({
+        message: "Cập nhật thành công!",
+        type: "success",
+    });
     } catch (error) {
       console.error("Lỗi chỉnh sửa chi tiêu:", error);
+      showMessage({
+        message: "Cập nhật thất bại!",
+        type: "danger",
+    });
     } finally {
       setLoading(false);
     }
@@ -194,7 +203,7 @@ const IncomeEdit = () => {
 
   return (
     <ScrollView contentContainerStyle={tw`flex-grow p-4 bg-white mx-2 rounded-lg`}>
-       <View style={tw`flex-row items-center border-b border-violet-100 p-2 mb-4`}>
+       <View style={tw`flex-row items-center border-b border-indigo-100 p-2 mb-4`}>
       <Image source={require('../../../assets/images/money-bags.png')} style={{ width: 27, height: 27 }} />  
       <TextInput
         placeholder="Số tiền"
@@ -231,7 +240,7 @@ const IncomeEdit = () => {
   </View>
 
 
-  <View style={tw`flex-row items-center border-b border-violet-100 p-2 mb-4`}>
+  <View style={tw`flex-row items-center border-b border-indigo-100 p-2 mb-4`}>
       <Ionicons name="list" size={24} color="#D3D3D3" />
   <TouchableOpacity style={tw`flex-1 ml-2`} onPress={() => Alert.alert('Chọn danh mục')}>
     <View style={tw`flex-row items-center`}>
@@ -244,7 +253,7 @@ const IncomeEdit = () => {
      
       <Modal visible={isModalVisible} transparent={true} animationType="none">
         <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
-          <View style={tw`bg-violet-100 rounded-lg p-4 w-11/12`}>
+          <View style={tw`bg-indigo-100 rounded-lg p-4 w-11/12`}>
             <CalendarPicker
               onDateChange={confirmDateSelection}
               selectedDate={moment(selectedDate, 'DD/MM/YYYY')}

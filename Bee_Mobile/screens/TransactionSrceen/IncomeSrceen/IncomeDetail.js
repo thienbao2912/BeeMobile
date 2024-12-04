@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomDeleteModal from '../../../components/Popup';
+import { showMessage } from 'react-native-flash-message';
 
 export default function IncomeDetail({ route, navigation }) {
   const { income } = route.params; 
@@ -21,6 +22,10 @@ export default function IncomeDetail({ route, navigation }) {
 
   const handleDeleteIncome = () => {
     setIsModalVisible(true);
+    showMessage({
+      message: "Xóa thành công!",
+      type: "success",
+  });
   };
 
   const confirmDeleteIncome = () => {

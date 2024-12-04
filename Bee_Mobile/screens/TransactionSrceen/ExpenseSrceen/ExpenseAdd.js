@@ -17,6 +17,7 @@ import moment from 'moment';
 import 'moment/locale/vi';
 import { fetchAllCategories, addTransaction } from '../../../services/Transaction';
 import * as SecureStore from 'expo-secure-store';
+import { showMessage } from 'react-native-flash-message';
 import tw from 'twrnc';
 moment.locale('vi');
 const ExpenseAdd = () => {
@@ -87,6 +88,10 @@ const ExpenseAdd = () => {
       setDescription('');
       setSelectedCategory(null);setSelectedDate(moment().format('DD/MM/YYYY'));
       navigation.navigate('ExpenseList', { refresh: true });
+      showMessage({
+        message: "Thêm chi tiêu thành công!",
+        type: "success",
+    });
       // Alert.alert('Thêm chi tiêu thành công.');
     } catch (error) {
       console.error('Lỗi thêm chi tiêu:', error);
@@ -117,7 +122,7 @@ const ExpenseAdd = () => {
           <Text style={tw`text-white font-bold`}>Sổ giao dịch</Text>
         </TouchableOpacity>
       )}
-      <View style={tw`flex-row items-center border-b border-violet-100 p-2 mb-4`}>
+      <View style={tw`flex-row items-center border-b border-indigo-100 p-2 mb-4`}>
         <Image source={require('../../../assets/images/money-bags.png')} style={{ width: 27, height: 27 }} />
         <TextInput
           placeholder="Số tiền"
@@ -145,7 +150,7 @@ const ExpenseAdd = () => {
       </TouchableOpacity>
       <Modal visible={isModalVisible} transparent={true} animationType="none">
         <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
-          <View style={tw`bg-violet-100 rounded-lg p-4 w-11/12`}>
+          <View style={tw`bg-indigo-100 rounded-lg p-4 w-11/12`}>
             <CalendarPicker
               onDateChange={(date) => {
                 const formattedDate = moment(date).format('DD/MM/YYYY');
@@ -195,8 +200,7 @@ const ExpenseAdd = () => {
           multiline
         />
       </View>
-      {/* Nút dấu "+" để thêm danh mục mới */}
-      <View style={tw`flex-row items-center border-b border-violet-100 p-2 mb-4`}>
+      <View style={tw`flex-row items-center border-b border-indigo-100 p-2 mb-4`}>
         <Ionicons name="list" size={24} color="#D3D3D3" />
         <TouchableOpacity style={tw`flex-1 ml-2`} onPress={() => Alert.alert('Chọn danh mục')}>
           <View style={tw`flex-row items-center`}>
