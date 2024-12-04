@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store'; // Import SecureStore để lấy token
 
-const API_URL = 'http://172.16.21.39:4000/api';
+const API_URL = 'http://172.16.6.92:4000/api';
 
 // Hàm lấy tất cả giao dịch
 export const fetchAllTransactions = async () => {

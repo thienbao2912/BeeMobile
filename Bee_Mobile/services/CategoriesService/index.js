@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-const API_URL = "http://172.16.21.39:4000/api";
+const API_URL = "http://172.16.6.92:4000/api";
 
 export const fetchAllCategories = async () => {
   try {
@@ -108,41 +108,60 @@ export const addCategory = async (categoryData) => {
 
   
 
-  export const updateCategory = async (cateId, cateData) => {
+export const updateCategory = async (cateId, updateData) => {
+  const token = await SecureStore.getItemAsync('token');
+  
+  try {
+    const response = await fetch(`${API_URL}/v2/categories/${cateId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+       'x-auth-token': token,
+
+      },
+      body: JSON.stringify(updateData),
+    });
+    console.log("Cate ID:", cateId);
+    const text = await response.text(); // Đọc toàn bộ phản hồi
+
+    if (!response.ok) {
+      console.error('Server Response:', text); // Log lại phản hồi server
+      try {
+        const errorData = JSON.parse(text); // Thử parse JSON
+        throw new Error(errorData.message || 'Failed to update category');
+      } catch (parseError) {
+        throw new Error(`Server returned non-JSON response: ${text}`); // Phản hồi không phải JSON
+      }
+    }
+
+    return JSON.parse(text); // Trả JSON nếu có
+  } catch (error) {
+    console.error(`Error updating category with ID ${cateId}:`, error);
+    throw error;
+  }
+};
+
+
+  export const deleteCategory = async (cateId) => {
     try {
-      const response = await fetch(`${API_URL}/category/${cateId}`, {
-        method: 'PUT',
+      const token = await SecureStore.getItemAsync('token');
+      const response = await fetch(`${API_URL}/v2/categories/${cateId}`, {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'x-auth-token': token,
         },
-        body: JSON.stringify(goalData),
       });
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error('Failed to update Category');
+      console.error('Server Response:', errorData);
+        throw new Error(errorData.message || 'Failed to delete Category');
       }
-  
-      const data = await response.json();
-      return data;
+        return await response.json(); 
+     
     } catch (error) {
-      console.error(`Error updating Category with ID ${cateId}:`, error);
-      throw error;
-    }
-  };
-  export const deleteCategory = async (cateId) => {
-    try {
-      const response = await fetch(`${API_URL}/category/delete/${cateId}`, {
-        method: 'DELETE',
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to delete Category');
-      }
-  
-      return { message: 'Category deleted successfully' };
-    } catch (error) {
-      console.error(`Error deleting Category with ID ${goalId}:`, error);
+      console.error(`Error deleting Category with ID ${cateId}:`, error);
       throw error;
     }
   };
