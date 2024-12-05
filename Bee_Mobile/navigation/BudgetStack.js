@@ -4,17 +4,12 @@ import BudgetScreen from '../screens/BudgetSrceen/BudgetList';
 import BudgetEdit from '../screens/BudgetSrceen/BudgetEdit';
 import BudgetAdd from '../screens/BudgetSrceen/BudgetAdd';
 import BudgetDetail from '../screens/BudgetSrceen/BudgetDetail';
+import AddCategoryScreen from '../screens/CategoriesScreen/AddCategoryScreen';
 
 const Stack = createStackNavigator();
 
 function AuthStack() {
     return (
-        // <Stack.Navigator screenOptions={{ headerShown: false }}>
-        //     <Stack.Screen name="Login" component={Login} />
-        //     <Stack.Screen name="Register" component={Register} />
-        //     <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
-        //     <Stack.Screen name="TabNavigator" component={TabNavigator} />
-        // </Stack.Navigator>
         <Stack.Navigator>
             <Stack.Screen
                 name="BudgetList"
@@ -35,6 +30,11 @@ function AuthStack() {
                 name="BudgetDetail"
                 component={BudgetDetail}
                 options={{ title: 'Chi tiết ngân sách' }} // Tên của trang
+            />
+            <Stack.Screen
+                name="AddCategoryScreen"
+                component={AddCategoryScreen}
+                options={{ title: "Thêm danh sách danh mục" }}
             />
         </Stack.Navigator>
     );

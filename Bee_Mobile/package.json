@@ -39,7 +39,7 @@
     "react-native-paper": "^5.12.5",
     "react-native-svg": "15.8.0",
     "react-native-swipe-list-view": "^3.2.9",
-    "react-native-vector-icons": "^10.0.3",
+    "react-native-vector-icons": "^10.2.0",
     "tailwind-react-native-classnames": "^1.5.1",
     "twrnc": "^4.5.1",
     "universal-cookie": "^7.2.1"

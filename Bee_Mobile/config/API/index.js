@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = 'http://172.16.8.126:4000';
+const API_URL = 'http://192.168.0.103:4000';
 
 // Hàm lưu token vào SecureStore
 const saveToken = async (token) => {

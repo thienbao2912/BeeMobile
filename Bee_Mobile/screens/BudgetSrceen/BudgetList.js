@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import tw from 'twrnc';
+import { useFocusEffect } from "@react-navigation/native";
 import { View, Text, ScrollView, TouchableOpacity, Modal, Alert, SafeAreaView, Image, StatusBar, ActivityIndicator, RefreshControl } from 'react-native'; // Thêm RefreshControl
 import * as SecureStore from 'expo-secure-store';
 import { fetchAllBudgets, deleteBudget } from '../../services/Budget';
@@ -50,22 +51,26 @@ export default function BudgetScreen() {
         fetchBudgets();
     }, [userId]);
 
-    useEffect(() => {
-        if (route.params?.refresh) {
+    const fetchBudgets = async () => {
+        try {
             setLoading(true);
-            const fetchBudgets = async () => {
-                try {
-                    const budgetData = await fetchAllBudgets(userId);
-                    setBudgets(budgetData);
-                } catch (error) {
-                    console.error('Error loading budgets:', error);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchBudgets();
+            const budgetData = await fetchAllBudgets(userId);
+            setBudgets(budgetData);
+        } catch (error) {
+            console.error('Error loading budgets:', error);
+            Alert.alert('Lỗi', 'Không thể tải danh sách ngân sách');
+        } finally {
+            setLoading(false);
         }
-    }, [route.params?.refresh]);
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            if (route.params?.refresh) {
+                fetchBudgets();
+            }
+        }, [route.params?.refresh, userId])
+    );
 
     const openDeleteModal = (budget) => {
         if (budget) {

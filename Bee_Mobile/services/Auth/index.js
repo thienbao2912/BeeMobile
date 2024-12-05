@@ -132,7 +132,7 @@ const getUserProfile = async () => {
     try {
         const userId = await getToken('userId');
         const token = await SecureStore.getItemAsync('token');
-        const response = await fetch(`http://172.16.8.126:4000/api/auth/get-profile/${userId}`, {
+        const response = await fetch(`http://192.168.0.103:4000/api/auth/get-profile/${userId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

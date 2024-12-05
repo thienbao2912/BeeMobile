@@ -30,6 +30,11 @@ const BudgetSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    statusBudget: {
+        type: Number,
+        enum: [0, 1, 2], // 0: Còn tiền, 1: Hết tiền, 2: Vượt số tiền
+        default: 0 // Mặc định là còn tiền
     }
 }, { timestamps: true });
 

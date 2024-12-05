@@ -17,12 +17,16 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { getCategories, updateBudget } from '../../services/Budget';
 import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 // Utility function to format the number as currency
+// Utility function to format the number as currency with 'đ' after the amount
 const formatCurrency = (amount) => {
-    return amount
-        ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
-        : '0 VNĐ';
+    if (amount) {
+        const formattedAmount = new Intl.NumberFormat('vi-VN').format(amount);
+        return `${formattedAmount} ₫`;
+    }
+    return '0 ₫';
 };
 
 const BudgetEdit = ({ route }) => {
@@ -36,6 +40,7 @@ const BudgetEdit = ({ route }) => {
     const [remainingBudget, setRemainingBudget] = useState(budget.remainingBudget.toString());
     const [totalExpenses, setTotalExpenses] = useState(budget.totalExpenses.toString());
     const [categories, setCategories] = useState([]);
+    const [statusBudget, setStatusBudget] = useState(budget.statusBudget);
     const [modalVisible, setModalVisible] = useState(false);
     const [isStartDatePickerVisible, setStartDatePickerVisible] = useState(false);
     const [isEndDatePickerVisible, setEndDatePickerVisible] = useState(false);
@@ -60,21 +65,18 @@ const BudgetEdit = ({ route }) => {
 
         fetchCategories();
     }, []);
-
-
     const handleSave = async () => {
         const userId = await SecureStore.getItemAsync('userId');
         try {
             const updateData = {
-                amount: parseFloat(amount),
+                amount: parseFloat(amount.replace(/[^\d.-]/g, '')),
                 categoryId,
                 startDate: startDate.toISOString(),
                 endDate: endDate.toISOString(),
                 userId: userId,
             };
 
-            console.log("amount", amount);
-            console.log("categoryId", categoryId);
+            console.log("amount", updateData.amount); // Kiểm tra giá trị sau khi đã chuyển đổi
 
             await updateBudget(budget._id, updateData);
             navigation.navigate('BudgetList', { refresh: true });
@@ -91,6 +93,7 @@ const BudgetEdit = ({ route }) => {
         setEndDate(new Date(budget.endDate));
         setRemainingBudget(budget.remainingBudget.toString());
         setTotalExpenses(budget.totalExpenses.toString());
+        setStatusBudget(budget.statusBudget);
         setIsEditing(false); // Hủy bỏ chỉnh sửa
     };
 
@@ -121,29 +124,44 @@ const BudgetEdit = ({ route }) => {
         setModalVisible(false);
     };
 
-    const handleAmountChange = (text) => {
-        // Xóa bỏ tất cả các ký tự không phải là số
-        let formattedText = text.replace(/[^\d]/g, '');
-        // Chia số thành các nhóm ba chữ số với dấu phẩy
-        if (formattedText) {
-            formattedText = new Intl.NumberFormat('vi-VN').format(formattedText);
-        }
-        setAmount(formattedText);
+    // Xác định trạng thái thời gian
+    const getTimeStatus = () => {
+        const now = new Date();
+        return now < endDate ? 0 : 1; // Nếu thời gian hiện tại < ngày kết thúc thì đang hoạt động
     };
 
     return (
         <SafeAreaView style={tw`flex-1 bg-white px-4`}>
             <ScrollView contentContainerStyle={tw`pt-4 pb-8`}>
+                <View style={tw`mb-3 flex-row items-center justify-between flex-wrap`}>
+                    <Text style={[tw`font-bold text-lg mb-2 text-purple-500`, { textShadowColor: '#', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 3 }]}>
+                        Ngân sách: {categories.find((cat) => cat._id === categoryId)?.name || budget.categoryId?.name || 'Không có tên'}
+                    </Text>
+                    {/* Trạng thái thời gian, căn phải */}
+                    <View style={tw`flex-row items-center ml-auto`}>
+                        {getTimeStatus() === 0 && (
+                            <View style={tw`w-2 h-2 bg-green-500 rounded-full mr-2`} />
+                        )}
+                        <Text style={tw`text-sm ${getTimeStatus() === 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {getTimeStatus() === 0 ? 'Đang hoạt động' : 'Đã hết hạn'}
+                        </Text>
+                    </View>
+                </View>
+
                 {/* Amount and Category */}
                 <View style={tw`flex-row justify-between mb-4`}>
-                <Card style={tw`flex-1 rounded-lg shadow-md p-3 mr-2`}>
+                    <Card style={tw`flex-1 rounded-lg shadow-md p-3 mr-2`}>
                         <Card.Content>
                             <Text style={tw`font-bold text-sm mb-2`}>Số tiền</Text>
                             {isEditing ? (
                                 <TextInput
                                     style={tw`border-b-2 border-gray-300 p-2 text-sm`}
-                                    value={formatCurrency(amount)}
-                                    onChangeText={handleAmountChange} // Cập nhật với giá trị định dạng
+                                    value={amount}
+                                    onChangeText={(input) => {
+                                        const numericValue = input.replace(/\D/g, '');
+                                        const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                        setAmount(formattedValue);
+                                    }}
                                     placeholder="Nhập số tiền"
                                     keyboardType="numeric"
                                 />
@@ -236,10 +254,28 @@ const BudgetEdit = ({ route }) => {
                     </Card>
                 </View>
 
+                <View style={tw`mb-4`}>
+                    {statusBudget === 0 ? null : (
+                        <View style={tw`flex-row items-center mt-2`}>
+                            {statusBudget === 1 && (
+                                <Icon name="times-circle" size={20} color="red" style={tw`mr-2`} />
+                            )}
+                            {statusBudget === 2 && (
+                                <Icon name="exclamation-triangle" size={20} color="red" style={tw`mr-2`} />
+                            )}
+
+                            <Text style={tw`text-sm ${statusBudget === 1 || statusBudget === 2 ? 'text-red-500' : ''}`}>
+                                {statusBudget === 1 ? 'Ngân sách đã hết' : 'Chi tiêu vượt ngân sách'}
+                            </Text>
+                        </View>
+                    )}
+                </View>
+
+
                 {/* Action buttons */}
                 {isEditing ? (
                     <View style={tw`w-full flex-row justify-between`}>
-                        <TouchableOpacity onPress={handleCancel} style={tw`bg-gray-400 p-3 rounded-lg w-[48%]`}>
+                        <TouchableOpacity onPress={handleCancel} style={tw`bg-red-400 p-3 rounded-lg w-[48%]`}>
                             <Text style={tw`text-white text-center`}>Hủy bỏ</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={handleSave} style={tw`bg-blue-500 p-3 rounded-lg w-[48%]`}>
