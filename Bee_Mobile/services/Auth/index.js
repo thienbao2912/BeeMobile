@@ -1,6 +1,6 @@
 import request from "../../config/API/index";
 import * as SecureStore from 'expo-secure-store';
-
+const API_URL = 'http://192.168.1.7:4000/api';
 const saveToken = async (key, value) => {
     try {
         await SecureStore.setItemAsync(key, value);
@@ -53,6 +53,25 @@ const verifyOldPassword = async (userId, oldPassword) => {
     }
 };
 
+const validateOldPassword = async (userId, oldPassword) => {
+    try {
+      // Gửi userId và oldPassword vào request
+      const res = await request({
+        method: "POST",
+        path: "/api/auth/verify-password",
+        data: { userId, oldPassword },  // Sử dụng userId thay vì email
+      });
+        console.log(res.data);
+  
+      return res.data;  // Trả về kết quả từ server
+    } catch (error) {
+      console.error("Validate old password error:", error);
+      throw error;
+    }
+  };
+  
+  
+  
 const loginUser = async ({ email, password }) => {
     try {
         const res = await request({
@@ -132,7 +151,7 @@ const getUserProfile = async () => {
     try {
         const userId = await getToken('userId');
         const token = await SecureStore.getItemAsync('token');
-        const response = await fetch(`http://10.0.2.2:4000/api/auth/get-profile/${userId}`, {
+        const response = await fetch(`${API_URL}/auth/get-profile/${userId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`  
             }
@@ -175,6 +194,17 @@ const updateUser = async (userId, { email, password, name, avatar, role }) => {
     return res;
 };
 
+//Hàm cập nhật mật khẩu
+const updatePasword = async (userId, {  password,  }) => {
+    const data = { password  };
+    const res = await request({
+        method: "PUT",
+        path: `/api/auth/update/${userId}`,
+        data: data
+    });
+
+    return res;
+};
 // Hàm xóa người dùng
 const deleteUser = async (id) => {
     try {
@@ -200,5 +230,7 @@ export {
     updateUser,
     deleteUser,
     verifyOldPassword,
-    sendResetPasswordEmail
+    sendResetPasswordEmail,
+    updatePasword,
+    validateOldPassword
 };

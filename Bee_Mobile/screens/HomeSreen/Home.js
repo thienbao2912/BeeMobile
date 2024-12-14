@@ -19,7 +19,6 @@ import * as SecureStore from "expo-secure-store";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { getUserProfile } from "../../services/Auth";
 import { fetchAllSavingFund } from "../../services/SavingsFundService";
-// import { fetchAllBudgets } from "../../services/Budget";
 
 const Card = ({ title, children }) => (
   <View style={tw`bg-white rounded-lg p-5 mb-4 shadow-md`}>
@@ -53,7 +52,6 @@ const Home = () => {
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [filterOption, setFilterOption] = useState("today");
   const [savingsFund, setSavingFund] = useState([]);
-  // const [budget, setBudget] = useState([]);
   const navigation = useNavigation();
 
   const loadUserData = useCallback(async () => {
@@ -68,7 +66,7 @@ const Home = () => {
           fetchAllSavingGoalsByUser(id),
           getUserProfile(),
           fetchAllSavingFund(),
-          // fetchAllBudgets(),
+        
         ]);
 
         setTransactions(
@@ -76,11 +74,11 @@ const Home = () => {
         );
         setSavingGoals(goalsData);
         setSavingFund(fundData);
-        // setBudget(BudgetData);
+       
         setWallet(userProfile.wallet || 0);
       }
     } catch (error) {
-      console.error("Lỗi tải dữ liệu người dùng:", error);
+console.error("Lỗi tải dữ liệu người dùng:", error);
     } finally {
       setLoading(false);
     }
@@ -185,7 +183,7 @@ const Home = () => {
   return (
     <FlatList
       data={[]}
-      contentContainerStyle={tw`bg-gray-100`}
+contentContainerStyle={tw`bg-gray-100`}
       ListHeaderComponent={() => (
         <View style={tw`mt-10 flex-1`}>
           <View style={tw`bg-purple-400 p-5 flex-row justify-between items-center`}>
@@ -258,7 +256,7 @@ const Home = () => {
                   <Text style={tw`text-sm font-bold text-green-600`}>
                     {isVisible
                       ? filteredTransactions.totalIncome.toLocaleString()
-                      : "*** đ"}
+: "*** đ"}
                   </Text>
                   <Text style={tw`text-xs text-gray-600`}>Thu nhập</Text>
                 </View>
@@ -332,7 +330,7 @@ const Home = () => {
     }}
     keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
     horizontal={true}
-    ListEmptyComponent={
+ListEmptyComponent={
       <Text style={tw`text-center text-gray-500 mt-5`}>Chưa có mục tiêu chung</Text>
     }
   />
@@ -400,7 +398,7 @@ const Home = () => {
                       />
                     </View>
                     <View style={tw`flex-1`}>
-                      <Text style={tw`text-lg font-semibold`}>
+<Text style={tw`text-lg font-semibold`}>
                         {transaction.categoryId?.name?.length > 20
                           ? `${transaction.categoryId.name.substring(0, 20)}...`
                           : transaction.categoryId?.name || "Tên danh mục"}
@@ -463,7 +461,7 @@ const Home = () => {
                     </View>
                   );
                 }}
-                keyExtractor={(item) => item.id ? item.id.toString() : Math.random().toString()}
+keyExtractor={(item) => item.id ? item.id.toString() : Math.random().toString()}
                 horizontal={true}
                 ListEmptyComponent={
                   <Text style={tw`text-center text-gray-500 mt-5`}>Chưa có mục tiêu tiết kiệm</Text>

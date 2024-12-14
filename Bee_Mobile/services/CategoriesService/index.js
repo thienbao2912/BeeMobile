@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-const API_URL = "http://10.0.2.2:4000/api";
+const API_URL = "http://192.168.1.7:4000/api";
 
 export const fetchAllCategories = async () => {
   try {
@@ -108,42 +108,88 @@ export const addCategory = async (categoryData) => {
 
   
 
-  export const updateCategory = async (cateId, cateData) => {
-    try {
-      const response = await fetch(`${API_URL}/category/${cateId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(goalData),
-      });
+export const updateCategory = async (cateId, updateData) => {
+  const token = await SecureStore.getItemAsync('token');
   
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error('Failed to update Category');
+  try {
+    const response = await fetch(`${API_URL}/v2/categories/${cateId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+       'x-auth-token': token,
+
+      },
+      body: JSON.stringify(updateData),
+    });
+    console.log("Cate ID:", cateId);
+    const text = await response.text(); // Đọc toàn bộ phản hồi
+
+    if (!response.ok) {
+      console.error('Server Response:', text); // Log lại phản hồi server
+      try {
+        const errorData = JSON.parse(text); // Thử parse JSON
+        throw new Error(errorData.message || 'Failed to update category');
+      } catch (parseError) {
+        throw new Error(`Server returned non-JSON response: ${text}`); // Phản hồi không phải JSON
       }
-  
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error(`Error updating Category with ID ${cateId}:`, error);
-      throw error;
     }
-  };
-  export const deleteCategory = async (cateId) => {
-    try {
-      const response = await fetch(`${API_URL}/category/delete/${cateId}`, {
-        method: 'DELETE',
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to delete Category');
+
+    return JSON.parse(text); // Trả JSON nếu có
+  } catch (error) {
+    console.error(`Error updating category with ID ${cateId}:`, error);
+    throw error;
+  }
+};
+
+
+export const deleteCategory = async (cateId) => {
+  try {
+    const token = await SecureStore.getItemAsync('token');
+    const response = await fetch(`${API_URL}/v2/categories/${cateId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Server Response:', errorData);
+      if (errorData.message === "Danh mục đang được sử dụng") {
+        // Thông báo nếu danh mục đang được sử dụng
+        throw new Error("Danh mục đang được sử dụng và không thể xóa");
       }
-  
-      return { message: 'Category deleted successfully' };
-    } catch (error) {
-      console.error(`Error deleting Category with ID ${goalId}:`, error);
-      throw error;
+      throw new Error(errorData.message || 'Failed to delete Category');
     }
-  };
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error deleting Category with ID ${cateId}:`, error);
+    throw error;
+  }
+};
+export const checkCategoryInUse = async (cateId) => {
+  try {
+      const token = await SecureStore.getItemAsync('token');
+      const response = await fetch(`${API_URL}/v2/categories/check/${cateId}`, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+              'x-auth-token': token,
+          },
+      });
+
+      if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to check category usage');
+      }
+
+      return await response.json(); // Giả sử API trả về một thông báo về việc sử dụng danh mục
+  } catch (error) {
+      console.error(`Error checking if category with ID ${cateId} is in use:`, error);
+      throw error;
+  }
+};
+
   

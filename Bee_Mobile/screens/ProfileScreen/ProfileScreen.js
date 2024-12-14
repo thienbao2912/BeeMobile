@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, TouchableOpacity, Image, TextInput, ActivityIndicator } from "react-native";
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  ActivityIndicator,
+} from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useNavigation } from "@react-navigation/native";
-import { getUserProfile } from "../services/Auth";
+import { getUserProfile } from "../../services/Auth";
 import tw from "twrnc";
 
 const logout = async (navigation) => {
@@ -52,27 +59,29 @@ function Profile() {
 
   return (
     <View style={tw`flex-1 bg-white items-center justify-center px-6 py-10`}>
-      <Text style={tw`text-4xl font-bold text-blue-700 mb-8`}>Hồ sơ</Text>
+      <Text style={tw`text-4xl font-bold text-blue-700 mb-8`}>{userProfile.name}</Text>
       {userProfile ? (
         <>
           <Image
             source={
               userProfile.avatar
                 ? { uri: userProfile.avatar }
-                : require("../assets/images/rabbit.png")
+                : require("../../assets/images/rabbit.png")
             }
             style={tw`w-40 h-40 rounded-full shadow-xl mb-6`}
           />
 
           <Text style={tw`text-lg font-bold text-indigo-700`}>
-            {new Intl.NumberFormat('vi-VN', {
-              style: 'currency',
-              currency: 'VND',
+            {new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
             }).format(userProfile.wallet)}
           </Text>
           <View style={tw`w-full mb-4`}>
             <Text style={tw`text-lg text-gray-600 mb-2`}>Tên</Text>
-            <View style={tw`bg-gray-100 p-2.7 rounded-lg border border-gray-100 shadow-sm`}>
+            <View
+              style={tw`bg-gray-100 p-2.7 rounded-lg border border-gray-100 shadow-sm`}
+            >
               <TextInput
                 style={tw`text-lg text-gray-700`}
                 value={userProfile.name}
@@ -82,7 +91,9 @@ function Profile() {
           </View>
           <View style={tw`w-full mb-6`}>
             <Text style={tw`text-lg text-gray-600 mb-2`}>Email</Text>
-            <View style={tw`bg-gray-100 p-2.7 rounded-lg border border-gray-100 shadow-sm`}>
+            <View
+              style={tw`bg-gray-100 p-2.7 rounded-lg border border-gray-100 shadow-sm`}
+            >
               <TextInput
                 style={tw`text-lg text-gray-700`}
                 value={userProfile.email}
@@ -98,7 +109,15 @@ function Profile() {
         style={tw`px-6 py-3 bg-indigo-500 rounded-lg shadow-lg mb-6`}
         onPress={() => logout(navigation)}
       >
-        <Text style={tw`text-white text-lg font-semibold`}>Logout</Text>
+        <Text style={tw`text-white text-lg font-semibold`}>Đăng xuất</Text>
+        
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={tw`px-6 py-3 bg-indigo-500 rounded-lg shadow-lg mb-6`}
+        onPress={() => navigation.navigate("ChangePassword")}
+      >
+        <Text style={tw`text-white text-lg font-semibold`}>Thay đổi mật khẩu</Text>
+        
       </TouchableOpacity>
     </View>
   );
