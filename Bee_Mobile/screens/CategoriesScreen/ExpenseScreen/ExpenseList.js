@@ -7,17 +7,17 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import tw from "twrnc";
 import {
   fetchAllCategories,
   fetchAllCategoriesByUser,
 } from "../../../services/CategoriesService";
+import { useNavigation } from "@react-navigation/native";
 
-const ExpenseListCate = () => {
+const ExpenseListCate = ({ route, refreshKey }) => {
+  const navigation = useNavigation();
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [isLoading, setLoadingCategories] = useState(false);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const ExpenseListCate = () => {
           setLoadingCategories(false);
           return;
         }
-        
+
         // Lấy danh mục mặc định
         const defaultCategoriesResponse = await fetchAllCategories();
         const defaultCategories =
@@ -45,7 +45,7 @@ const ExpenseListCate = () => {
           userCategoriesResponse?.data?.filter(
             (category) => category.type === "expense"
           ) || [];
-          
+
         // Hợp nhất danh mục và loại bỏ trùng lặp bằng cách sử dụng _id duy nhất
         const combinedCategories = [
           ...defaultCategories,
@@ -56,7 +56,7 @@ const ExpenseListCate = () => {
               )
           ),
         ];
-       
+
         setCategories(combinedCategories);
       } catch (error) {
         console.error("Lỗi khi fetch danh mục:", error);
@@ -65,12 +65,16 @@ const ExpenseListCate = () => {
         setLoadingCategories(false);
       }
     };
-    
+
     fetchCategories();
-  }, []);
+  }, [refreshKey]);
 
   const isValidImage = (url) => {
     return url && (url.startsWith("http://") || url.startsWith("https://"));
+  };
+
+  const handleDetail = (category) => {
+    navigation.navigate("ExpenseDetailCate", { category });
   };
 
   if (isLoading) {
@@ -79,44 +83,36 @@ const ExpenseListCate = () => {
 
   return (
     <ScrollView contentContainerStyle={tw`p-4`}>
-      <View style={tw`flex-row flex-wrap justify-between`}>
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category._id}
-            style={[
-              tw`w-1/4 p-2 m-1 rounded-lg bg-white shadow-lg `,
-              selectedCategory === category._id
-                ? tw`border-2 border-indigo-500`
-                : "",
-            ]}
-            onPress={() => setSelectedCategory(category._id)}
-          >
-            <Image
-              source={{
-                uri: isValidImage(category.image)
-                  ? category.image
-                  : "https://via.placeholder.com/150",
-              }}
-              style={tw`w-18 h-18 rounded-full`}
-              resizeMode="cover"
-            />
-            <Text style={tw`text-center font-semibold text-gray-800`}>
-              {category.name.length > 20
-                ? `${category.name.substring(0, 20)}...`
-                : category.name}
-            </Text>
-            {selectedCategory === category._id && (
-              <Ionicons
-                name="checkmark-circle"
-                size={20}
-                color="#4f46e5"
-                style={tw`absolute top-1 right-1`}
-              />
-            )}
-          </TouchableOpacity>
-        ))}
-      </View>
-    </ScrollView>
+    <View style={tw`flex-row flex-wrap justify-center `}>
+      {categories.map((category, index) => (
+        <TouchableOpacity
+          key={category._id}
+          style={[
+            tw`w-1/4 p-2 m-3 rounded-lg bg-white shadow-lg`,
+            
+          ]}
+          onPress={() => handleDetail(category)} // Điều hướng khi nhấn
+        >
+          <Image
+            source={{
+              uri: isValidImage(category.image)
+                ? category.image
+                : "https://via.placeholder.com/150",
+            }}
+            style={tw`w-18 h-18 rounded-full`}
+            resizeMode="cover"
+          />
+          <Text style={tw`text-center font-semibold text-gray-800`}>
+            {category.name.length > 20
+              ? `${category.name.substring(0, 20)}...`
+              : category.name}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </ScrollView>
+  
+
   );
 };
 

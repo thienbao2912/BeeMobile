@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 // import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import HomeScreen from '../screens/HomeScreen';
 
-import ProfileScreen from '../screens/ProfileScreen';
+import ProfileScreen from '../screens/ProfileScreen/ProfileScreen';
 // import TransactionScreen from '../screens/TransactionScreen';
 // import SavingGoalStackScreen from './SavingGoalStackScreen';
 // // import ProfileScreen from '../screens/ProfileScreen';
@@ -14,7 +14,7 @@ import BudgetStackScreen from './BudgetStack';
 import SavingGoalStackScreen from './SavingGoalStackScreen';
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import AppStack from "./AppStack";
-
+import ProfileStackScreen from "./profileStack";
 // import ExpenseDetail from "../screens/TransactionSrceen/ExpenseSrceen/ExpenseDetail";
 
 import Home from "../screens/HomeSreen/Home";
@@ -85,7 +85,7 @@ function TabNavigator() {
               options={{ title: 'Chi tiết' }} 
             /> */}
       {/* <Tab.Screen name="Ngân sách" component={BudgetScreen} /> */}
-      <Tab.Screen name="Tài khoản" component={ProfileScreen} />
+      <Tab.Screen name="Tài khoản" component={ProfileStackScreen} />
       {/* <Tab.Screen name="danh mục" component={CategoriesStackScreen} /> */}
     </Tab.Navigator>
   );

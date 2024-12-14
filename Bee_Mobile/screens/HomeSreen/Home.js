@@ -20,7 +20,6 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { getUserProfile } from "../../services/Auth";
 import { fetchAllSavingFund } from "../../services/SavingsFundService";
 
-
 const Card = ({ title, children }) => (
   <View style={tw`bg-white rounded-lg p-5 mb-4 shadow-md`}>
     <Text style={tw`text-xl font-bold mb-3`}>{title}</Text>
@@ -53,7 +52,6 @@ const Home = () => {
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [filterOption, setFilterOption] = useState("today");
   const [savingsFund, setSavingFund] = useState([]);
-
   const navigation = useNavigation();
 
   const loadUserData = useCallback(async () => {
@@ -68,7 +66,7 @@ const Home = () => {
           fetchAllSavingGoalsByUser(id),
           getUserProfile(),
           fetchAllSavingFund(),
-
+        
         ]);
 
         setTransactions(
@@ -76,11 +74,11 @@ const Home = () => {
         );
         setSavingGoals(goalsData);
         setSavingFund(fundData);
-
+       
         setWallet(userProfile.wallet || 0);
       }
     } catch (error) {
-      console.error("Lỗi tải dữ liệu người dùng:", error);
+console.error("Lỗi tải dữ liệu người dùng:", error);
     } finally {
       setLoading(false);
     }
@@ -184,7 +182,7 @@ const Home = () => {
   return (
     <FlatList
       data={[]}
-      contentContainerStyle={tw`bg-gray-100`}
+contentContainerStyle={tw`bg-gray-100`}
       ListHeaderComponent={() => (
         <View style={tw`mt-10 flex-1`}>
           <View style={tw`bg-purple-400 p-5 flex-row justify-between items-center`}>
@@ -208,7 +206,7 @@ const Home = () => {
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={[
-                  tw`p-2 mr-2 rounded-full`,
+                  tw`p-2 mr-1 rounded-full`,
                   filterOption === item.value ? tw`bg-indigo-400` : tw`bg-gray-200 border border-indigo-200`,
                 ]}
                 onPress={() => setFilterOption(item.value)}
@@ -257,7 +255,7 @@ const Home = () => {
                   <Text style={tw`text-sm font-bold text-green-600`}>
                     {isVisible
                       ? filteredTransactions.totalIncome.toLocaleString()
-                      : "*** đ"}
+: "*** đ"}
                   </Text>
                   <Text style={tw`text-xs text-gray-600`}>Thu nhập</Text>
                 </View>
@@ -283,62 +281,60 @@ const Home = () => {
             </Card>
 
             <View title="Quỹ tiết kiệm" style={tw`mb-5`}>
-              <TouchableOpacity
-                style={tw`self-end items-center mt-4`}
-                onPress={() => navigation.navigate("SavingFundList")}
-              >
-                <Text style={tw`text-sm font-medium text-purple-700 mt-1`}>Xem tất cả</Text>
-              </TouchableOpacity>
+  <TouchableOpacity
+    style={tw`self-end items-center mt-4`}
+    onPress={() => navigation.navigate("SavingFundList")}
+  >
+    <Text style={tw`text-sm font-medium text-purple-700 mt-1`}>Xem tất cả</Text>
+  </TouchableOpacity>
 
-              <FlatList
-                data={savingsFund.reverse()}
-                renderItem={({ item }) => {
-                  const progress = item.currentAmount / item.targetAmount;
-                  const progressPercentage = Math.floor(progress * 100) || 0;
-                  return (
-                    <View style={tw`mr-4 bg-white rounded-lg shadow-lg`}>
-
-                      <View style={tw`flex-row items-center p-2`}>
-                        <View style={tw`p-2 bg-indigo-100 rounded-full`}>
-                          <Image
-                            source={
-                              item.categoryId && item.categoryId.image
-                                ? { uri: item.categoryId.image }
-                                : require("../../assets/images/rabbit.png")
-                            }
-                            style={tw`w-8 h-8 rounded-full`} // Kích thước ảnh nhỏ hơn
-                          />
-                        </View>
-
-                        <Text style={tw`text-base text-gray-800 font-semibold ml-2`}>
-                          {item.name && item.name.length > 8 ? `${item.name.substring(0, 8)}...` : item.name || "Chưa có tên"}
-                        </Text>
-
-                      </View>
-                      {/* Phần nội dung */}
-                      <View style={tw`p-4 rounded-lg border-t border-gray-200`}>
-                        <View style={tw`w-full h-2 bg-gray-300 rounded-full overflow-hidden`}>
-                          <View
-                            style={[
-                              tw`h-full ${item.color ? `bg-[${item.color}]` : "bg-purple-700"}`,
-                              { width: `${progressPercentage}%` },
-                            ]}
-                          />
-                        </View>
-                        <Text style={tw`text-sm text-gray-500 mt-1`}>
-                          {progressPercentage}%
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                }}
-                keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
-                horizontal={true}
-                ListEmptyComponent={
-                  <Text style={tw`text-center text-gray-500 mt-5`}>Chưa có mục tiêu chung</Text>
+  <FlatList
+    data={savingsFund.reverse()}
+    renderItem={({ item }) => {
+      const progress = item.currentAmount / item.targetAmount;
+      const progressPercentage = Math.floor(progress * 100) || 0;
+      return (
+        <View style={[tw`mr-4 bg-white rounded-lg shadow-lg`, { width: 150, height: 150 }]}>
+          <View style={tw`flex-row items-center p-2`}>
+            <View style={tw`p-2 bg-indigo-100 rounded-full`}>
+              <Image
+                source={
+                  item.categoryId && item.categoryId.image
+                    ? { uri: item.categoryId.image }
+                    : require("../../assets/images/rabbit.png")
                 }
+                style={tw`w-8 h-8 rounded-full`}
               />
             </View>
+
+            <Text style={tw`text-sm text-gray-800 font-semibold ml-2`}>
+              {item.name && item.name.length > 8 ? `${item.name.substring(0, 8)}...` : item.name || "Chưa có tên"}
+            </Text>
+          </View>
+
+          {/* Phần nội dung */}
+          <View style={tw`p-3 rounded-lg border-t border-gray-200`}>
+            <View style={tw`w-full h-2 bg-gray-300 rounded-full overflow-hidden`}>
+              <View
+                style={[
+                  tw`h-full ${item.color ? `bg-[${item.color}]` : "bg-purple-700"}`,
+                  { width: `${progressPercentage}%` },
+                ]}
+              />
+            </View>
+            <Text style={tw`text-xs text-gray-500 mt-1`}>{progressPercentage}%</Text>
+          </View>
+        </View>
+      );
+    }}
+    keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
+    horizontal={true}
+ListEmptyComponent={
+      <Text style={tw`text-center text-gray-500 mt-5`}>Chưa có mục tiêu chung</Text>
+    }
+  />
+</View>
+
 
             <Card title="Mục tiêu tiết kiệm">
               <FlatList
@@ -401,7 +397,7 @@ const Home = () => {
                       />
                     </View>
                     <View style={tw`flex-1`}>
-                      <Text style={tw`text-lg font-semibold`}>
+<Text style={tw`text-lg font-semibold`}>
                         {transaction.categoryId?.name?.length > 20
                           ? `${transaction.categoryId.name.substring(0, 20)}...`
                           : transaction.categoryId?.name || "Tên danh mục"}
@@ -430,6 +426,47 @@ const Home = () => {
                 <Text style={tw`text-white text-base`}>Xem tất cả</Text>
               </TouchableOpacity>
             </Card>
+
+            {/* <Card title="Ngân sách">
+              <FlatList
+                data={savingGoals.reverse()}
+                renderItem={({ item }) => {
+                  const progress = item.currentAmount / item.targetAmount;
+                  const progressPercentage = Math.floor(progress * 100) || 0;
+                  return (
+                    <View style={tw`mr-4 items-center`}>
+                      <Image
+                        source={
+                          item.categoryId && item.categoryId.image
+                            ? { uri: item.categoryId.image }
+                            : require("../../assets/images/rabbit.png")
+                        }
+                        style={tw`w-10 h-10`}
+                      />
+                      <Text style={tw`text-base text-purple-700 mb-1`}>
+                        {item.name || "Chưa có tên"}
+                      </Text>
+                      <View style={tw`w-24 h-2 bg-gray-300 rounded-full overflow-hidden`}>
+                        <View
+                          style={[
+                            tw`h-full ${item.color ? `bg-[${item.color}]` : "bg-purple-700"}`,
+                            { width: `${progressPercentage}%` },
+                          ]}
+                        />
+                      </View>
+                      <Text style={tw`text-sm text-gray-500 mt-1`}>
+                        {progressPercentage}%
+                      </Text>
+                    </View>
+                  );
+                }}
+keyExtractor={(item) => item.id ? item.id.toString() : Math.random().toString()}
+                horizontal={true}
+                ListEmptyComponent={
+                  <Text style={tw`text-center text-gray-500 mt-5`}>Chưa có mục tiêu tiết kiệm</Text>
+                }
+              />
+            </Card> */}
           </View>
         </View>
       )}
