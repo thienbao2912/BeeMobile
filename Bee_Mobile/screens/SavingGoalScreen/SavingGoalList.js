@@ -73,7 +73,7 @@ export default function SavingGoalScreen({ navigation }) {
       showMessage({
         message: "Xóa thành công!",
         type: "success",
-    });
+      });
     } catch (error) {
       console.error("Error deleting saving goal:", error);
     }
@@ -165,7 +165,14 @@ export default function SavingGoalScreen({ navigation }) {
               style={tw`border rounded-lg p-4 mb-4 bg-white`}
             >
               <View style={tw`flex-row items-center justify-between`}>
-                <Image style={tw`w-12 h-12 rounded-full mr-4`} />
+                <Image
+                  source={
+                    goal.categoryId.image && goal.categoryId.image
+                      ? { uri: goal.categoryId.image }
+                      : require("../../assets/images/rabbit.png")
+                  }
+                  style={tw`w-10 h-10 mr-5`}
+                />
                 <View style={tw`flex-1`}>
                   <Text style={tw`font-bold text-lg`}>{goal.name}</Text>
                   <Text style={tw`text-gray-500`}>

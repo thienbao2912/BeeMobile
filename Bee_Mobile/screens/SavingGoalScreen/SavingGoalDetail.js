@@ -71,7 +71,14 @@ export default function SavingGoalDetail({ route, navigation }) {
           <Icon name="edit" size={24} color="#6B46C1" />
         </TouchableOpacity>
         <View style={tw`flex-row items-center`}>
-          <Image source={require("../../assets/images/favicon.png")} style={tw`w-12 h-12 rounded-full mr-4`} />
+        <Image
+                  source={
+                    goal.categoryId.image && goal.categoryId.image
+                      ? { uri: goal.categoryId.image }
+                      : require("../../assets/images/rabbit.png")
+                  }
+                  style={tw`w-10 h-10 mr-5`}
+                />
           <View style={tw`flex-1`}>
             <Text style={tw`font-bold text-lg`}>{goal.name}</Text>
             <Text style={tw`text-gray-500`}>
