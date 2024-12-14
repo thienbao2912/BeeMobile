@@ -1,4 +1,4 @@
-const API_URL = 'http://172.16.6.92:4000/api'; // Đảm bảo đúng port của backend
+const API_URL = 'http://192.168.1.7:4000/api'; // Đảm bảo đúng port của backend
 
 export const fetchAllSavingGoals = async () => {
   try {

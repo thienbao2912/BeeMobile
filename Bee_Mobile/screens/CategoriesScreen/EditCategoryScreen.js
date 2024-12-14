@@ -11,8 +11,9 @@ import {
 import tw from "twrnc";
 import * as SecureStore from "expo-secure-store";
 import { updateCategory } from "../../services/CategoriesService";
+import { useNavigation } from "@react-navigation/native";
 
-export default function ExpenseEditCate({ route, navigation }) {
+export default function ExpenseEditCate({ route }) {
   const { category } = route.params;
   const [name, setName] = useState(category.name);
   const [description, setDescription] = useState(category.description || "");
@@ -21,8 +22,7 @@ export default function ExpenseEditCate({ route, navigation }) {
   const [userId, setUserId] = useState(category.userId._id); // Truyền userId từ category
   const [categoryId, setCategoryId] = useState(category._id)
   const status = "active"; // Trạng thái mặc định
-
-  console.log(userId);
+  const navigation = useNavigation();
   
   const handleSave = async () => {
     if (!name.trim()) {
@@ -42,7 +42,7 @@ export default function ExpenseEditCate({ route, navigation }) {
 
       await updateCategory(categoryId, updatedCategory);
       Alert.alert("Thành công", "Danh mục đã được cập nhật.");
-      navigation.goBack();
+      navigation.navigate("CategoryListScreen")
     } catch (error) {
       console.error("Lỗi cập nhật danh mục:", error);
       Alert.alert("Lỗi", "Không thể cập nhật danh mục.");
@@ -53,13 +53,11 @@ export default function ExpenseEditCate({ route, navigation }) {
 
   return (
     <ScrollView style={tw`flex-1 p-4 bg-white`}>
-      <Text style={tw`text-2xl font-bold text-gray-800 mb-4 text-center`}>
-        Sửa danh mục
-      </Text>
+     
 
       {/* Tên danh mục */}
-      <View style={tw`mb-4`}>
-        <Text style={tw`text-lg font-semibold text-gray-700`}>Tên danh mục:{category._id}</Text>
+      <View style={tw`mb-4 mt-4`}>
+        <Text style={tw`text-lg font-semibold text-gray-700`}>Tên danh mục: </Text>
         <TextInput
           value={name}
           onChangeText={setName}
@@ -85,19 +83,19 @@ export default function ExpenseEditCate({ route, navigation }) {
         <Text style={tw`text-lg font-semibold text-gray-700`}>Loại:</Text>
         <View style={tw`flex-row mt-2`}>
           <TouchableOpacity
-            style={tw`flex-1 py-3 bg-${type === "expense" ? "blue-500" : "gray-200"} rounded-lg mr-2`}
+            style={tw`flex-1 py-3 bg-${type === "expense" ? "indigo-500" : "gray-200"} rounded-lg mr-2`}
             onPress={() => setType("expense")}
           >
             <Text style={tw`text-center text-${type === "expense" ? "white" : "black"}`}>
-              Expense
+              Chi tiêu
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={tw`flex-1 py-3 bg-${type === "income" ? "blue-500" : "gray-200"} rounded-lg`}
+            style={tw`flex-1 py-3 bg-${type === "income" ? "indigo-500" : "gray-200"} rounded-lg`}
             onPress={() => setType("income")}
           >
             <Text style={tw`text-center text-${type === "income" ? "white" : "black"}`}>
-              Income
+              Thu nhập
             </Text>
           </TouchableOpacity>
         </View>
@@ -105,7 +103,7 @@ export default function ExpenseEditCate({ route, navigation }) {
 
       {/* Nút lưu */}
       <TouchableOpacity
-        style={tw`bg-green-500 rounded-lg mt-6 p-4 items-center`}
+        style={tw`bg-indigo-600 rounded-lg mt-6 p-3 items-center`}
         onPress={handleSave}
         disabled={loading}
       >

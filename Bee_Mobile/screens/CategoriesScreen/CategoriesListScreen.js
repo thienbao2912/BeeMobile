@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { ScrollView, Platform, View } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import tw from "twrnc";
 import ExpenseList from "./ExpenseScreen/ExpenseList";
 import IncomeList from "./IncomeScreen/IncomeList";
-
+import { useFocusEffect } from "@react-navigation/native";
 const CategoryListScreen = () => {
   const [selectedTab, setSelectedTab] = useState("Danh mục chi tiêu");
   const [refreshKey, setRefreshKey] = useState(0); // State để kích hoạt load lại dữ liệu
@@ -13,8 +13,12 @@ const CategoryListScreen = () => {
   const handleRefresh = () => {
     setRefreshKey((prevKey) => prevKey + 1);
   };
-  
 
+  useFocusEffect(
+    useCallback(() => {
+      handleRefresh();
+    }, [])
+  );
   return (
     <View style={tw`flex-1 bg-white`}>
       {/* Thanh điều hướng tab */}
@@ -35,7 +39,11 @@ const CategoryListScreen = () => {
       />
 
       {/* Nội dung dựa trên tab */}
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={``
+          
+        }
+      >
         {selectedTab === "Danh mục chi tiêu" ? (
           <ExpenseList refreshKey={refreshKey} onRefresh={handleRefresh} />
         ) : (

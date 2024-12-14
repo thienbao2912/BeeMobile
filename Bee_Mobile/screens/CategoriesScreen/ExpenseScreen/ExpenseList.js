@@ -83,31 +83,36 @@ const ExpenseListCate = ({ route, refreshKey }) => {
 
   return (
     <ScrollView contentContainerStyle={tw`p-4`}>
-      <View style={tw`flex-row flex-wrap justify-between`}>
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category._id}
-            style={tw`w-1/4 p-2 m-1 rounded-lg bg-white shadow-lg`}
-            onPress={() => handleDetail(category)} // Điều hướng khi nhấn
-          >
-            <Image
-              source={{
-                uri: isValidImage(category.image)
-                  ? category.image
-                  : "https://via.placeholder.com/150",
-              }}
-              style={tw`w-18 h-18 rounded-full`}
-              resizeMode="cover"
-            />
-            <Text style={tw`text-center font-semibold text-gray-800`}>
-              {category.name.length > 20
-                ? `${category.name.substring(0, 20)}...`
-                : category.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </ScrollView>
+    <View style={tw`flex-row flex-wrap justify-center `}>
+      {categories.map((category, index) => (
+        <TouchableOpacity
+          key={category._id}
+          style={[
+            tw`w-1/4 p-2 m-3 rounded-lg bg-white shadow-lg`,
+            
+          ]}
+          onPress={() => handleDetail(category)} // Điều hướng khi nhấn
+        >
+          <Image
+            source={{
+              uri: isValidImage(category.image)
+                ? category.image
+                : "https://via.placeholder.com/150",
+            }}
+            style={tw`w-18 h-18 rounded-full`}
+            resizeMode="cover"
+          />
+          <Text style={tw`text-center font-semibold text-gray-800`}>
+            {category.name.length > 20
+              ? `${category.name.substring(0, 20)}...`
+              : category.name}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </ScrollView>
+  
+
   );
 };
 

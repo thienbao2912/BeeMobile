@@ -10,16 +10,20 @@ import {
 } from "react-native";
 import tw from "twrnc";
 import CustomDeleteModal from "../../../components/Popup";
-import { deleteCategory, checkCategoryInUse  } from "../../../services/CategoriesService";
+import {
+  deleteCategory,
+  checkCategoryInUse,
+} from "../../../services/CategoriesService";
 
-export default function ExpenseDetailCate({ route, navigation }) {
-  const { category } = route.params; // Nhận dữ liệu category từ route params
+export default function IncomeEditCate({ route, navigation }) {
+  const { category } = route.params;
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isEditable, setIsEditable] = useState(true);
   const [isDelete, setIsDelete] = useState(true);
 
-  useEffect(() => {
+
+ useEffect(() => {
     const loadData = async () => {
       setLoading(false);
       console.log("Category data:", category);
@@ -37,11 +41,11 @@ export default function ExpenseDetailCate({ route, navigation }) {
       Alert.alert("Thông báo", "Không có dữ liệu để sửa.");
     }
   };
-  const handleDeleteExpense = () => {
+  const handleDeleteIncome = () => {
     setIsModalVisible(true);
   };
   
-  const confirmDeleteExpense = async () => {
+  const confirmDeleteIncome = async () => {
     console.log("Deleting category with ID: ", category._id);
    
     
@@ -67,7 +71,7 @@ export default function ExpenseDetailCate({ route, navigation }) {
 
   
 
-  const cancelDeleteExpense = () => {
+  const cancelDeleteIncome = () => {
     setIsModalVisible(false);
   };
 
@@ -138,7 +142,7 @@ export default function ExpenseDetailCate({ route, navigation }) {
       <TouchableOpacity
         style={tw`bg-indigo-600 rounded-lg mt-4 p-3 items-center`}
         disabled={!isDelete || loading}
-        onPress={handleDeleteExpense}
+        onPress={handleDeleteIncome}
       >
         {loading ? (
           <ActivityIndicator size="small" color="#fff" />
@@ -151,10 +155,11 @@ export default function ExpenseDetailCate({ route, navigation }) {
 
       <CustomDeleteModal
         isVisible={isModalVisible}
-        onConfirm={confirmDeleteExpense}
-        onCancel={cancelDeleteExpense}
+        onConfirm={confirmDeleteIncome}
+        onCancel={cancelDeleteIncome}
         message="Bạn chắc chắn xóa danh mục này?"
       />
     </ScrollView>
   );
 }
+

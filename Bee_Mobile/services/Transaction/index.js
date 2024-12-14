@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = 'http://172.16.6.92:4000/api';
+const API_URL = 'http://192.168.1.7:4000/api';
 
 export const fetchAllTransactions = async () => {
   try {

@@ -78,9 +78,9 @@ const AddCategoryScreen = () => {
         _id: null,
         userId: `ObjectId('${userId}')`,
         status: "active",
-        type: categoryType, // Lưu giá trị 'income' hoặc 'expense'
+        type: categoryType,
         name: categoryName,
-        image: iconToSave, // Đảm bảo giá trị icon hợp lệ
+        image: iconToSave,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         description,
@@ -136,10 +136,10 @@ const AddCategoryScreen = () => {
       <Text style={tw`mb-2 text-gray-700 font-semibold`}>Loại danh mục</Text>
       <SegmentedControl
         values={["Khoản chi", "Khoản thu"]}
-        selectedIndex={categoryType === "expense" ? 0 : 1} // "expense" là 0, "income" là 1
+        selectedIndex={categoryType === "expense" ? 0 : 1}
         onChange={(event) => {
           const selectedValue = event.nativeEvent.value;
-          setCategoryType(selectedValue === "Khoản chi" ? "expense" : "income"); // Chuyển đổi giá trị API
+          setCategoryType(selectedValue === "Khoản chi" ? "expense" : "income");
         }}
         style={tw`mb-4`}
       />
@@ -170,6 +170,7 @@ const AddCategoryScreen = () => {
         <Ionicons name="list" size={24} color="white" />
         <Text style={tw`text-white font-semibold`}>Danh sách danh mục</Text>
       </TouchableOpacity>
+
 
       {/* Modal chọn icon */}
       <Modal

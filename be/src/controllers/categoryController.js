@@ -102,6 +102,32 @@ class CategoryController {
         
 
     }
+    // Trong controller hoặc file route của bạn
+
+static async check(req, res) {
+    try {
+        const categoryId = req.params.id; // Lấy id danh mục từ tham số URL
+        
+        // Kiểm tra xem danh mục có đang được sử dụng trong giao dịch nào không
+        const checkCategory = await Transaction.findOne({ categoryId: categoryId });
+
+        if (checkCategory) {
+            // Nếu có giao dịch sử dụng danh mục này, trả về thông báo lỗi
+            return res.status(400).json({ message: "Danh mục đang được sử dụng và không thể xóa." });
+        }
+
+        // Nếu không có giao dịch nào sử dụng danh mục, trả về thông báo danh mục có thể xóa
+        return res.status(200).json({ message: "Danh mục có thể xóa." });
+    } catch (error) {
+        console.error("Error checking category usage:", error);
+        res.status(500).json({
+            message: 'Lỗi server',
+            error: error.message, // Gửi thông tin lỗi chi tiết (chỉ dùng trong môi trường dev)
+        });
+    }
 }
+
+}
+
 
 module.exports = CategoryController;
