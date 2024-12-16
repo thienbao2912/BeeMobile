@@ -17,6 +17,7 @@ router.put('/resetPassword', authController.resetPassword);
 
 router.post('/reset-password', authController.resetPassword);
 
+
 router.get('/resetpassword/:token', authController.resetpassword);
 // Lấy thông tin người dùng theo ID
 router.get("/get-one/:id", authController.getOne);

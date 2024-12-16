@@ -63,31 +63,31 @@ const AddCategoryScreen = () => {
       setError("Tên danh mục không được để trống");
       return;
     }
-  
+
     setIsLoading(true);
     setError("");
-  
+
     try {
       // Đặt giá trị mặc định cho selectedIcon nếu chưa được chọn
       const iconToSave =
         selectedIcon === "category"
           ? "https://firebasestorage.googleapis.com/v0/b/asmreactjs-c0ddc.appspot.com/o/categories%2Fserum.png?alt=media&token=3038a34d-dac5-44c8-8fd8-c18fdd57f3b2"
           : selectedIcon;
-  
+
       const newCategory = {
         _id: null,
         userId: `ObjectId('${userId}')`,
         status: "active",
-        type: categoryType, // Lưu giá trị 'income' hoặc 'expense'
+        type: categoryType,
         name: categoryName,
-        image: iconToSave, // Đảm bảo giá trị icon hợp lệ
+        image: iconToSave,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         description,
       };
-  
+
       await addCategory(newCategory);
-  
+
       console.log("Danh mục đã được lưu:", newCategory);
       setCategoryName("");
       setCategoryType("expense");
@@ -98,7 +98,6 @@ const AddCategoryScreen = () => {
       setIsLoading(false);
     }
   };
-  
 
   return (
     <View style={tw`flex-1 p-4 bg-white`}>
@@ -137,10 +136,10 @@ const AddCategoryScreen = () => {
       <Text style={tw`mb-2 text-gray-700 font-semibold`}>Loại danh mục</Text>
       <SegmentedControl
         values={["Khoản chi", "Khoản thu"]}
-        selectedIndex={categoryType === "expense" ? 1 : 0} // Mapping giá trị thực tế
+        selectedIndex={categoryType === "expense" ? 0 : 1}
         onChange={(event) => {
           const selectedValue = event.nativeEvent.value;
-          setCategoryType(selectedValue === "Khoản chi" ? "income" : "expense"); // Chuyển đổi sang giá trị API
+          setCategoryType(selectedValue === "Khoản chi" ? "expense" : "income");
         }}
         style={tw`mb-4`}
       />
@@ -171,6 +170,7 @@ const AddCategoryScreen = () => {
         <Ionicons name="list" size={24} color="white" />
         <Text style={tw`text-white font-semibold`}>Danh sách danh mục</Text>
       </TouchableOpacity>
+
 
       {/* Modal chọn icon */}
       <Modal

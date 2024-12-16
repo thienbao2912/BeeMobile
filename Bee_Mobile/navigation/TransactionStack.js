@@ -12,6 +12,9 @@ import IncomeEdit from "../screens/TransactionSrceen/IncomeSrceen/IncomeEdit";
 import ExpenseListCate from "../screens/CategoriesScreen/CategoriesListScreen";
 import AddCategoryScreen from "../screens/CategoriesScreen/AddCategoryScreen";
 import CategoryListScreen from "../screens/CategoriesScreen/CategoriesListScreen";
+import ExpenseDetailCate from "../screens/CategoriesScreen/ExpenseScreen/ExpenseDetail";
+import ExpenseEditCate from "../screens/CategoriesScreen/EditCategoryScreen";
+import IncomeDetailCate from "../screens/CategoriesScreen/IncomeScreen/IncomeDetail";
 const TransactionStack = createStackNavigator();
 
 function TransactionStackScreen() {
@@ -61,6 +64,21 @@ function TransactionStackScreen() {
         name="CategoryListScreen"
         component={CategoryListScreen}
         options={{ title: "Danh sách danh mục" }}
+      />
+      <TransactionStack.Screen
+        name="ExpenseDetailCate"
+        component={ExpenseDetailCate}
+        options={{ title: "Chi tiết danh mục" }}
+      />
+      <TransactionStack.Screen
+        name="ExpenseEditCate"
+        component={ExpenseEditCate}
+        options={{ title: "Sửa chi tiết danh mục" }}
+      />
+      <TransactionStack.Screen
+        name="IncomeDetailCate"
+        component={IncomeDetailCate}
+        options={{ title: "Sửa chi tiết danh mục" }}
       />
     </TransactionStack.Navigator>
   );

@@ -62,18 +62,24 @@ class CategoryController {
     }
     static async editCategory(req, res) {
         try {
-            let userId = req.user.id
-            let id = req.params.id
-            let data = { userId, ...req.body }
-            console.log(data);
-            let result = await Category.findOneAndUpdate({ userId, _id: id }, data)
+            let userId = req.user.id;
+            let id = req.params.id;
+            let data = { userId, ...req.body };
+            console.log('Request data:', data);
+    
+            let result = await Category.findOneAndUpdate({ userId, _id: id }, data, { new: true });
+            
+            if (!result) {
+                return res.status(404).json({ message: 'Category not found' });
+            }
+    
             res.status(200).json({ message: 'Đã sửa thành công', data: result });
         } catch (error) {
-            res.status(500).json({
-                message: 'Server error'
-            })
+            console.error('Error during editCategory:', error);
+            res.status(500).json({ message: 'Server error', error: error.message });
         }
     }
+    
     static async delete(req, res) {
         try {
             let userId = req.user.id
@@ -83,16 +89,45 @@ class CategoryController {
             if (checkidCategory) {
                 return res.status(400).json({ message: "Danh mục đang được sử dụng" });
             }
-            let data = await categoryModel.findOneAndDelete({ userId, _id: id })
+            let data = await Category.findOneAndDelete({ userId, _id: id })
 
             res.status(200).json({ message: 'Đã xóa thành công', data });
         } catch (error) {
+            console.error("Error in delete category:", error); // Log chi tiết lỗi
             res.status(500).json({
-                message: 'Server error'
-            })
+                message: 'Server error',
+                error: error.message, // Gửi thông tin lỗi chi tiết (chỉ dùng trong môi trường dev)
+            });
         }
+        
 
     }
+    // Trong controller hoặc file route của bạn
+
+static async check(req, res) {
+    try {
+        const categoryId = req.params.id; // Lấy id danh mục từ tham số URL
+        
+        // Kiểm tra xem danh mục có đang được sử dụng trong giao dịch nào không
+        const checkCategory = await Transaction.findOne({ categoryId: categoryId });
+
+        if (checkCategory) {
+            // Nếu có giao dịch sử dụng danh mục này, trả về thông báo lỗi
+            return res.status(400).json({ message: "Danh mục đang được sử dụng và không thể xóa." });
+        }
+
+        // Nếu không có giao dịch nào sử dụng danh mục, trả về thông báo danh mục có thể xóa
+        return res.status(200).json({ message: "Danh mục có thể xóa." });
+    } catch (error) {
+        console.error("Error checking category usage:", error);
+        res.status(500).json({
+            message: 'Lỗi server',
+            error: error.message, // Gửi thông tin lỗi chi tiết (chỉ dùng trong môi trường dev)
+        });
+    }
 }
+
+}
+
 
 module.exports = CategoryController;

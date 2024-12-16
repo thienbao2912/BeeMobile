@@ -26,5 +26,14 @@ const SavingsFundSchema = new Schema({
 }, {
     timestamps: true
 });
+SavingsFundSchema.virtual('status').get(function () {
+    if (this.targetAmount === 0) return 0; // Tránh chia cho 0
+    const percentage = (this.currentAmount / this.targetAmount) * 100;
+    return Math.round(percentage); // Làm tròn giá trị phần trăm
+  });
+  
+  
+  SavingsFundSchema.set('toJSON', { virtuals: true });
+  SavingsFundSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('SavingsFund', SavingsFundSchema);

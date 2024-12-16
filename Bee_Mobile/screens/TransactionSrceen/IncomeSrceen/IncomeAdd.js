@@ -13,12 +13,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import CalendarPicker from 'react-native-calendar-picker';
+import DateTimePicker from "@react-native-community/datetimepicker";
 import moment from 'moment';
 import 'moment/locale/vi';
 import { fetchAllCategories, addTransaction } from '../../../services/Transaction';
 import * as SecureStore from 'expo-secure-store';
-import { showMessage } from 'react-native-flash-message';
 import tw from 'twrnc';
 moment.locale('vi');
 const IncomeAdd = () => {
@@ -28,8 +27,7 @@ const IncomeAdd = () => {
   const [categories, setCategories] = useState([]);
   const [showIncomeList, setShowIncomeList] = useState(false);
   const [selectedDate, setSelectedDate] = useState(moment().format('DD/MM/YYYY'));
-  const [tempSelectedDate, setTempSelectedDate] = useState(selectedDate);
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [isLoadingCategories, setLoadingCategories] = useState(false);
   const navigation = useNavigation();
@@ -83,32 +81,26 @@ const IncomeAdd = () => {
       date: moment(selectedDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
     };
     try {
-      // setLoading(true);
       setButtonDisabled(true);
-      await addTransaction(newIncome);setAmount('');
+      await addTransaction(newIncome);
+      setAmount('');
       setDescription('');
-      setSelectedCategory(null);
-      setSelectedDate(moment().format('DD/MM/YYYY'));
+      setSelectedCategory(null);setSelectedDate(moment().format('DD/MM/YYYY'));
       navigation.navigate('ExpenseList', { refresh: true });
-      showMessage({
-        message: "Thêm thu nhập thành công!",
-        type: "success",
-    });
-      // Alert.alert('Thêm chi tiêu thành công.');
     } catch (error) {
-      console.error('Lỗi thêm chi tiêu:', error);
+      console.error('Lỗi thêm thu nhập:', error);
     } finally {
       setButtonDisabled(false);
     }
   };
-  const confirmDateSelection = () => {
-    setSelectedDate(tempSelectedDate);
-    setModalVisible(false);
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || moment().toDate();
+    setSelectedDate(moment(currentDate).format('DD/MM/YYYY'));
+    setDatePickerVisible(false);
   };
 
-  const cancelDateSelection = () => {
-    setTempSelectedDate(selectedDate);
-    setModalVisible(false);
+  const showDatePicker = () => {
+    setDatePickerVisible(true);
   };
 
   if (isLoading) {
@@ -124,11 +116,11 @@ const IncomeAdd = () => {
           <Text style={tw`text-white font-bold`}>Sổ giao dịch</Text>
         </TouchableOpacity>
       )}
-      <View style={tw`flex-row items-center border-b border-indigo-100 p-2 mb-4`}>
+      <View style={tw`flex-row items-center border-b border-indigo-100 p-3`}>
         <Image source={require('../../../assets/images/money-bags.png')} style={{ width: 27, height: 27 }} />
         <TextInput
           placeholder="Số tiền"
-          style={tw`flex-1 text-2xl ml-2 text-indigo-600`}
+          style={tw`text-2xl ml-2 text-indigo-700`}
           value={amount}
           onChangeText={(input) => {
             const numericValue = input.replace(/\D/g, '');
@@ -139,171 +131,87 @@ const IncomeAdd = () => {
           autoFocus
         />
       </View>
-      <TouchableOpacity onPress={() => setModalVisible(true)}>
-        <View style={tw`flex-row items-center bg-indigo-50 rounded-lg px-2 h-10 mb-4`}>
-          <Ionicons name="calendar" size={24} color="#D3D3D3" />
-          <TextInput
-            style={tw`flex-1 ml-2`}
-            value={selectedDate}
-            placeholder="Chọn ngày"
-            editable={false}
-          />
+      <TouchableOpacity onPress={showDatePicker} style={tw`bg-white border-b border-indigo-100 p-3`}>
+        <View style={tw`flex-row items-center`}>
+          <Ionicons name="calendar" size={24} color="#4B5563" />
+          <Text style={tw`flex-1 ml-3 text-lg text-gray-700`}>
+            {selectedDate || "Chọn ngày"}
+          </Text>
         </View>
       </TouchableOpacity>
-      <Modal visible={isModalVisible} transparent={true} animationType="none">
-        <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
-          <View style={tw`bg-indigo-100 rounded-lg p-4 w-11/12`}>
-            <CalendarPicker
-              onDateChange={(date) => {
-                const formattedDate = moment(date).format('DD/MM/YYYY');
-                setTempSelectedDate(formattedDate);
-              }}
-              selectedDate={moment(tempSelectedDate, 'DD/MM/YYYY')}
-              maxDate={moment().toDate()}
-              previousTitle={<Text style={{ color: '#5A5DD1', fontSize: 20, }}>◀</Text>}
-              nextTitle={<Text style={{ color: '#5A5DD1', fontSize: 20 }}>▶</Text>}weekdays={['CN', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7']}
-              months={[
-                'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-                'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
-              ]}
-              customDatesStyles={[
-                {
-                  date: moment(tempSelectedDate, 'DD/MM/YYYY').toDate(),
-                  style: { backgroundColor: '#5A5DD1' },
-                  textStyle: { color: '#fff' },
-                },
-              ]}
-              selectedDayColor="#5A5DD1"
-            />
-            <View style={tw`flex-row justify-between mt-4`}>
-              <TouchableOpacity
-                style={tw`bg-gray-300 p-2 rounded-lg flex-1 mr-2`}
-                onPress={cancelDateSelection}
-              >
-                <Text style={tw`text-center`}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={tw`bg-indigo-800 p-2 rounded-lg flex-1`}
-                onPress={confirmDateSelection}
-              >
-                <Text style={tw`text-white text-center`}>Chọn</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-      <View style={tw`flex-row items-center border-2 border-blue-100 bg-white rounded-lg p-2 mb-4`}>
-        <Ionicons name="document-text" size={24} color="#D3D3D3" />
+      {isDatePickerVisible && (
+        <DateTimePicker
+          value={moment(selectedDate, 'DD/MM/YYYY').toDate()}
+          mode="date"
+          display="default"
+          onChange={onDateChange}
+          maximumDate={new Date()}
+        />
+      )}
+        <View style={tw`flex-row items-center bg-white border-b border-indigo-100 p-3`}>
+        <Ionicons name="document-text" size={24} color="#4B5563" />
         <TextInput
           placeholder="Ghi chú"
-          style={tw`flex-1 ml-2`}
+          style={tw`flex-1 ml-3 text-lg text-gray-700`}
           value={description}
           onChangeText={(text) => setDescription(text.replace(/\n{2,}/g, '\n'))}
           multiline
         />
       </View>
-      <View style={tw`flex-row items-center border-b border-indigo-100 p-2 mb-4`}>
-        <Ionicons name="list" size={24} color="#D3D3D3" />
-        <TouchableOpacity style={tw`flex-1 ml-2`}>
-          <View style={tw`flex-row items-center`}>
-            <Text style={tw`text-lg`}>
+      <View style={tw`flex-row items-center bg-white border-b border-indigo-100 p-3 mb-4`}>
+        <Ionicons name="list" size={24} color="#4B5563" />
+        <TouchableOpacity style={tw`flex-1 ml-3`}>
+          <Text style={tw`text-lg text-gray-700`}>
               {selectedCategory ? categories.find(cat => cat._id === selectedCategory)?.name : 'Chọn danh mục'}
             </Text>
-          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`p-2 bg-indigo-600 rounded-full shadow`}
+          onPress={() => navigation.navigate('AddCategoryScreen')}
+        >
+          <Ionicons name="add" size={24} color="white" />
         </TouchableOpacity>
       </View>
       {isLoadingCategories ? (
   <ActivityIndicator size="large" color="#5A5DD1" />
 ) : categories.length > 0 ? (
-  categories.reduce((rows, category, index) => {
-    if (index % 3 === 0) {
-      rows.push(
-        <View key={index} style={tw`flex-row justify-between mb-2`}>
-          {/* Danh mục thứ nhất */}
-          <TouchableOpacity
-            key={category._id}
-            style={[
-              tw`flex-1 items-center p-2 bg-gray-50 rounded-lg mr-2`,
-              selectedCategory === category._id ? tw`border-2 bg-indigo-50 border-indigo-400` : ''
-            ]}
-            onPress={() => setSelectedCategory(category._id)}
-          >
-            <Image
-              source={{ uri: category.image }}
-              style={tw`w-10 h-10 mb-2`}
-              resizeMode="contain"
-            />
-            <Text style={tw`text-center`}>{category.name.length > 20 ? category.name.substring(0, 20) + '...' : category.name}
-            </Text>
-            {selectedCategory === category._id && (
-              <Ionicons name="checkmark-circle" size={24} color="#8270DB" style={tw`absolute top-0 right-0`} />
-            )}
-          </TouchableOpacity>
-
-          {/* Danh mục thứ hai */}
-          {categories[index + 1] && (
-            <TouchableOpacity
-              key={categories[index + 1]._id}
-              style={[
-                tw`flex-1 items-center p-2 bg-gray-50 rounded-lg mr-2`,
-                selectedCategory === categories[index + 1]._id ? tw`border-2 bg-indigo-50 border-indigo-400` : ''
-              ]}
-              onPress={() => setSelectedCategory(categories[index + 1]._id)}
-            >
-              <Image
-                source={{ uri: categories[index + 1].image }}
-                style={tw`w-10 h-10 mb-2`}
-                resizeMode="contain"
-              />
-              <Text style={tw`text-center`}>
-                {categories[index + 1].name.length > 20 ? categories[index + 1].name.substring(0, 20) + '...' : categories[index + 1].name}
-              </Text>
-              {selectedCategory === categories[index + 1]._id && (
-                <Ionicons name="checkmark-circle" size={24} color="#8270DB" style={tw`absolute top-0 right-0`} />
-              )}
-            </TouchableOpacity>
-          )}
-
-          {/* Danh mục thứ ba */}
-          {categories[index + 2] && (
-            <TouchableOpacity
-              key={categories[index + 2]._id}
-              style={[
-                tw`flex-1 items-center p-2 bg-gray-50 rounded-lg`,
-                selectedCategory === categories[index + 2]._id ? tw`border-2 bg-indigo-50 border-indigo-400` : ''
-              ]}
-              onPress={() => setSelectedCategory(categories[index + 2]._id)}
-            >
-              <Image
-                source={{ uri: categories[index + 2].image }}
-                style={tw`w-10 h-10 mb-2`}
-                resizeMode="contain"
-              />
-              <Text style={tw`text-center`}>
-                {categories[index + 2].name.length > 20 ? categories[index + 2].name.substring(0, 20) + '...' : categories[index + 2].name}
-              </Text>
-              {selectedCategory === categories[index + 2]._id && (
-                <Ionicons name="checkmark-circle" size={24} color="#8270DB" style={tw`absolute top-0 right-0`} />
-              )}
-            </TouchableOpacity>
-          )}
-        </View>
-      );
-    }
-    return rows;
-  }, [])
+  <View style={tw`flex-row flex-wrap`}>
+    {categories.map((category) => (
+      <TouchableOpacity
+        key={category._id}
+        style={[
+          tw`w-1/3 p-1 items-center bg-gray-40 rounded`,
+          selectedCategory === category._id ? tw`border-2 bg-indigo-50 border-indigo-400` : ''
+        ]}
+        onPress={() => setSelectedCategory(category._id)}
+      >
+        <Image
+          source={{ uri: category.image }}
+          style={tw`w-10 h-10 mb-2`}
+          resizeMode="contain"
+        />
+        <Text style={tw`text-center`}>
+          {category.name.length > 11 ? category.name.substring(0, 11) + '...' : category.name}
+        </Text>
+        {selectedCategory === category._id && (
+          <Ionicons name="checkmark-circle" size={24} color="#8270DB" style={tw`absolute top-0 right-0`} />
+        )}
+      </TouchableOpacity>
+    ))}
+  </View>
 ) : (
   <Text>Không tìm thấy danh mục nào.</Text>
 )}
       <TouchableOpacity
         style={[
-          tw`p-4 rounded-lg`,
-          isLoading ? tw`bg-indigo-200` : tw`bg-indigo-600` // Thay đổi màu khi đang xử lý
+          tw`p-3 rounded-lg mt-2`,
+          isLoading ? tw`bg-indigo-200` : tw`bg-indigo-500` // Thay đổi màu khi đang xử lý
         ]}
         onPress={handleAddIncome}
         disabled={isLoading}
       >
-        {isLoading ? (<ActivityIndicator size="small" color="#fff" /> // Hiển thị biểu tượng loading
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#fff" /> // Hiển thị biểu tượng loading
         ) : (
           <Text style={tw`text-white font-bold text-center`}>
             {isButtonDisabled ? 'Đang thêm nha...' : 'Thêm thu nhập'}
