@@ -150,7 +150,7 @@ export const addTransactionService = async (transactionData) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Error adding transaction:', error);
+    // console.error('Error adding transaction:', error);
     throw error;
   }
 };

@@ -107,7 +107,7 @@ return res.status(404).json({ message: 'Saving goal not found' });
     }
     const user = await User.findById(userId);
     if (user.wallet < amount) { 
-      return res.status(400).json({ message: 'Số dư ví của bạn không đủ để thực hiện giao dịch này.' });
+      return res.status(400).json({ message: 'Số dư không đủ để nạp tiền.' });
   }
 
     user.wallet -= amount;

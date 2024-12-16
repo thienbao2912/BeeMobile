@@ -63,6 +63,7 @@ export default function SavingGoalScreen({ navigation }) {
 
     return unsubscribe;
   }, [navigation]);
+
   const totalRemaining = totalTargetAmount - totalSavedAmount;
 
   const confirmDeleteGoal = (goalId) => {
@@ -115,27 +116,33 @@ export default function SavingGoalScreen({ navigation }) {
             rx="100"
             ry="65"
             stroke="black"
-            strokeWidth="5"
+            strokeWidth="3"
             fill="none"
           />
         </Svg>
         <Text style={tw`absolute top-13 text-base text-center`}>
           bạn cần tiết kiệm
         </Text>
-        <Text style={tw`absolute top-18 text-base`}>{totalRemaining.toLocaleString()} đ</Text>
+        <Text style={tw`absolute top-18 text-base`}>
+          {totalRemaining.toLocaleString()} đ
+        </Text>
       </View>
 
       <View style={tw`flex-row justify-between w-full my-2 items-center`}>
         <View style={tw`flex-1 items-center`}>
           <Text style={tw`text-base`}>Tổng mục tiêu</Text>
-          <Text style={tw`text-base font-bold mt-1`}>{totalTargetAmount.toLocaleString()} đ</Text>
+          <Text style={tw`text-base font-bold mt-1`}>
+            {totalTargetAmount.toLocaleString()} đ
+          </Text>
         </View>
 
         <View style={tw`h-12 w-0.5 bg-black mx-4`} />
 
         <View style={tw`flex-1 items-center`}>
           <Text style={tw`text-base`}>Tổng đã tiết kiệm</Text>
-          <Text style={tw`text-base font-bold mt-1`}>{totalSavedAmount.toLocaleString()} đ  </Text>
+          <Text style={tw`text-base font-bold mt-1`}>
+            {totalSavedAmount.toLocaleString()} đ{" "}
+          </Text>
         </View>
       </View>
 
