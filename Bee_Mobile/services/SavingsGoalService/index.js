@@ -1,4 +1,4 @@
-const API_URL = 'http://10.0.2.2:4000/api'; // Đảm bảo đúng port của backend
+const API_URL = 'http://10.0.2.2:4000/api';
 import * as SecureStore from "expo-secure-store";
 
 export const fetchAllSavingGoals = async () => {

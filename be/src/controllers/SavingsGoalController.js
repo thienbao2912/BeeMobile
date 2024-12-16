@@ -17,12 +17,12 @@ const addSavingsGoal = async (req, res) => {
   const { userId, name, targetAmount, currentAmount, startDate, endDate, categoryId } = req.body;
   const user = await User.findById(userId);
   if (!user || user.wallet < currentAmount) {
-      return res.status(400).json({
-          message: 'Số dư trong ví không đủ để thực hiện giao dịch'
-      });
+    return res.status(400).json({
+      message: 'Số dư trong ví không đủ để thực hiện giao dịch'
+    });
   }
+  
 
-  // Trừ tiền từ ví của người dùng
   user.wallet -= currentAmount;
   await user.save();
 
@@ -37,11 +37,13 @@ const addSavingsGoal = async (req, res) => {
       categoryId,
     });
     if (currentAmount > 0) {
-      data.transactionHistory = [{ amount: currentAmount, date: new Date() }];
-  }
+      newGoal.transactionHistory = [{ amount: currentAmount, date: new Date() }];
+    }
+    
     const savedGoal = await newGoal.save();
     res.status(201).json(savedGoal);
   } catch (error) {
+    console.error("Error saving the goal:", error); // Thêm log
     res.status(500).json({ message: 'Error saving the goal', error });
   }
 };
