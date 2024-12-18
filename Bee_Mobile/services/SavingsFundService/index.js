@@ -65,7 +65,6 @@ export const addSavingsFund = async (fundData) => {
     const data = await response.json();
     return data; // Trả về quỹ mới được tạo
   } catch (error) {
-    console.error('Error in addSavingsFund:', error);
     throw error; // Ném lỗi để frontend xử lý
   }
 };
@@ -151,7 +150,7 @@ export const addTransaction = async (fundId, transactionData) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error in addTransaction:', error);
+    // console.error('Error in addTransaction:', error);
     throw error;
   }
 };

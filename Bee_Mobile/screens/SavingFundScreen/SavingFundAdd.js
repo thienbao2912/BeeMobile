@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -16,7 +17,7 @@ import 'moment/locale/vi';
 import { addSavingsFund, fetchAllCategories } from '../../services/SavingsFundService';
 import * as SecureStore from 'expo-secure-store';
 import tw from 'twrnc';
-import { FontAwesome } from '@expo/vector-icons';
+import { showMessage } from 'react-native-flash-message';
 
 moment.locale('vi');
 
@@ -67,9 +68,38 @@ const SavingFundAdd = () => {
   }, []);
 
   const handleAddSavingFund = async () => {
-    if (isLoading || !targetAmount || !name || !selectedCategory || !userId) return;
-    const numericAmount = parseFloat(targetAmount.replace(/,/g, ''));
-    if (isNaN(numericAmount)) return;
+    if (isLoading || !targetAmount || !name || !selectedCategory || !userId) {
+      showMessage({
+        message: "Vui lòng nhập đầy đủ các trường thông tin.",
+        type: "warning",
+        icon: "warning",
+        floating: true,    
+      });
+      return;
+    }
+
+   const numericAmount = parseFloat(targetAmount.replace(/,/g, ''));
+  
+  if (isNaN(numericAmount)) {
+    showMessage({
+      message: "Số tiền không hợp lệ.",
+      type: "warning",
+      icon: "warning",
+      floating: true,
+    });
+    return;
+  }
+   // Kiểm tra số tiền lớn hơn 10,000
+   if (numericAmount < 10000) {
+    showMessage({
+      message: "Số tiền mục tiêu phải lớn hơn 10,000.",
+      type: "warning",
+      icon: "warning",
+      floating: true,
+    });
+    return;
+  }
+
 
     const newSavingFund = {
       userId,
@@ -89,8 +119,21 @@ const SavingFundAdd = () => {
       setStartDate(moment().format('DD/MM/YYYY'));
       setEndDate(moment().format('DD/MM/YYYY'));
 navigation.navigate('SavingFundList', { refresh: true });
-    } catch (error) {
-      console.error('Error adding savings fund:', error);
+} catch (error) {
+  let errorMessage = 'Có lỗi xảy ra. Vui lòng thử lại!';
+  if (error.message) {
+    errorMessage = error.message;
+  } else if (error.response?.data?.message) {
+    errorMessage = error.response.data.message;
+  }
+  showMessage({
+    message: errorMessage,
+    type: "danger",
+    icon: "danger",
+    floating: true,
+});
+
+
     } finally {
       setLoading(false);
     }

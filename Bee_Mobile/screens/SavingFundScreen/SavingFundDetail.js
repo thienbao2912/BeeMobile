@@ -6,6 +6,7 @@ import FundMembers from "./FundMembers";
 import FundTransactions from "./FundTransactions";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { deleteSavingsFund } from "../../services/SavingsFundService";
+import { showMessage } from 'react-native-flash-message';
 export default function SavingFundDetail({ route, navigation }) {
   const { fundId } = route.params;
   const [fundDetail, setFundDetail] = useState(null);
@@ -17,7 +18,7 @@ export default function SavingFundDetail({ route, navigation }) {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friendEmail, setFriendEmail] = useState("");
   const [deleting, setDeleting] = useState(null);
-
+const [isOwner, setIsOwner] = useState(false)
   const handleDelete = async (fundId) => {
     Alert.alert(
       "Xác nhận xóa",
@@ -57,11 +58,14 @@ export default function SavingFundDetail({ route, navigation }) {
     try {
       setLoading(true);
       const data = await fetchSavingFundById(fundId);
-      console.log(data);
+     setIsOwner(data.isOwner)
       setFundDetail(data?.data || {});
     } catch (error) {
       console.error("Error loading fund detail", error);
-      // Alert.alert("Error", "There was an issue loading fund details. Please try again later.");
+      showMessage({
+        message: "Lỗi hiển thị chi tiết quỹ tiết kiệm",
+        type: "danger",
+    });
     } finally {
       setLoading(false);
     }
@@ -83,13 +87,31 @@ amount: numericAmount,
       };
       setSending(true);
       await addTransaction(fundId, transactionData);
-      Alert.alert("Nạp tiền thành công");
+     
+      showMessage({
+        message: "Nạp tiền thành công",
+        type: "success",
+        icon: "success",
+        floating: true,   
+    });
       setShowModal(false);
       setAmount("");
       setNote("");
       loadFundDetail();
     } catch (error) {
-      console.error("Error adding transaction", error);
+      let errorMessage = 'Có lỗi xảy ra. Vui lòng thử lại!';
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      showMessage({
+        message: errorMessage,
+        type: "danger",
+        icon: "danger",
+        floating: true,    
+        
+    });
     } finally {
       setSending(false);
     }
@@ -178,18 +200,17 @@ amount: numericAmount,
           <Text style={tw`text-sm text-gray-400 font-medium flex-1`}>
 {fundDetail?.status != null ? `${fundDetail.status}%` : "No Status"}
           </Text>
-          <View style={tw`w-full h-2 bg-gray-100 mt-2`}>
-          <Text style={tw`text-sm text-gray-400 font-medium flex-1`}>
-            {fundDetail?.status != null ? `${fundDetail.status}%` : "No Status"}
-          </Text>
-            <Animated.View
-              style={{
-                width: progressWidth,
-                height: '100%',
-                backgroundColor: progressColor,
-              }}
-            />
-          </View>
+          <View style={tw`w-full h-2 bg-gray-100 mt-2 rounded-full overflow-hidden`}>
+  
+  <Animated.View
+    style={{
+      width: `${Math.min(fundDetail?.status || 0, 100)}%`, // Giới hạn tối đa 100%
+      height: '100%',
+      backgroundColor: progressColor,
+    }}
+  />
+</View>
+
           <View style={tw`pt-4`}>
             <View style={tw`flex-row items-center mb-2`}>
               <Text style={tw`text-sm text-gray-500 font-medium flex-1`}>
@@ -331,16 +352,20 @@ style={tw`flex-1 bg-indigo-600 py-2 rounded-full ml-2 ${sending ? "opacity-50" :
           </View>
         </Modal>
         <View style={tw`absolute top-3 right-3 flex-row`}>
-          <TouchableOpacity style={tw`p-2 bg-white rounded-full shadow-md`}
-            onPress={handleEdit}
-            >
-              <Ionicons name="pencil" size={20} color="#A57EF4" />
-            </TouchableOpacity>
+          {isOwner && (
+             <TouchableOpacity style={tw`p-2 bg-white rounded-full shadow-md`}
+             onPress={handleEdit}
+             >
+               <Ionicons name="pencil" size={20} color="#A57EF4" />
+             </TouchableOpacity>
+          )}
+           {isOwner && (
           <TouchableOpacity style={tw`p-2 bg-white rounded-full shadow-md ml-3`}
             onPress={() => handleDelete(fundDetail._id)}
           >
             <Ionicons name="trash-outline" size={25} color="#fc8181" />
           </TouchableOpacity>
+            )}.vn
         </View>
         <FundMembers fundId={fundId} />
         <FundTransactions fundId={fundId} />

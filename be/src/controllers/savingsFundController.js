@@ -59,13 +59,28 @@ class SavingsFundController {
     static async getById(req, res) {
         try {
             const id = req.params.id;
+            const userId = req.user.id
             const data = await SavingsFund.findById(id)
                 .populate('userId')
                 .populate('members.userId')
                 .populate('transactions.userId')
                 .populate('categoryId');
+
             if (!data) return res.status(404).json({ message: 'Quỹ tiết kiệm không tồn tại' });
-            res.status(200).json({ data });
+          
+
+            const isMember = data.members.some(
+                (member) => member.userId && member.userId._id.toString() === userId
+            )
+
+            const isOwner = data.userId._id.toString() === userId;
+
+            if (!isMember) {
+                return res.status(403).json({ message: 'Bạn không có quyền truy cập chi tiết quỹ tiết kiệm này'})
+            }
+
+            return res.status(200).json({ data, isOwner })
+
         } catch (error) {
             res.status(500).json({ message: 'Server error' });
         }

@@ -304,7 +304,7 @@ const ExpenseEdit = () => {
           <Text style={tw`text-center mb-2`}>Không tìm thấy danh mục nào.</Text>
         )}
          <TouchableOpacity 
-         style={tw`bg-indigo-600 p-4 rounded-lg`} 
+         style={tw`bg-indigo-600 p-3 rounded-lg mt-4`} 
          onPress={handleEditExpense}
          disabled={loading}
          >
