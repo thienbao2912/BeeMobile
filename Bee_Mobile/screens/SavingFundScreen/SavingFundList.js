@@ -4,7 +4,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { fetchAllSavingFund } from "../../services/SavingsFundService";
 import tw from "twrnc";
 import AcceptInvite from "./AcceptInvite";
-import ContentLoader, { Rect } from "react-content-loader/native";
+import ContentLoader from "react-content-loader/native";
 
 export default function SavingFundList({ navigation }) {
   const [savingsFunds, setSavingsFunds] = useState([]);

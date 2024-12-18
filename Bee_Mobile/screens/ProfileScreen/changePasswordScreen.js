@@ -14,6 +14,7 @@ import { updatePasword } from "../../services/Auth";
 import { validateOldPassword } from "../../services/Auth";
 import { useForm, Controller } from "react-hook-form";
 import Feather from "react-native-vector-icons/Feather";
+
 import tw from "twrnc";
 
 function ChangePassword() {
@@ -49,8 +50,8 @@ function ChangePassword() {
   }, []);
 
   const handleSave = async (data) => {
-    console.log("User ID:", userProfile?._id); // Kiểm tra userId
-    console.log("Old password:", data.oldPassword); // Kiểm tra mật khẩu cũ
+    console.log("User ID:", userProfile?._id); 
+    console.log("Old password:", data.oldPassword); 
     
     if (data.password !== data.confirmPassword) {
       setError("confirmPassword", {
@@ -60,22 +61,19 @@ function ChangePassword() {
     }
   
     try {
-      // Kiểm tra mật khẩu cũ
       const oldPasswordValid = await validateOldPassword(
-        userProfile._id,  // Dùng userProfile.id thay vì email
+        userProfile?._id,
         data.oldPassword
       );
-      console.log("Old password validation result:", oldPasswordValid); // Kiểm tra kết quả từ server
+      console.log("Old password validation result:", oldPasswordValid);
+  
       if (!oldPasswordValid?.success) {
         setError("oldPassword", { message: "Mật khẩu cũ không chính xác." });
         return;
       }
   
-      // Cập nhật mật khẩu mới
-      const updateData = {
-        password: data.password,
-      };
-      await updatePasword(userProfile._id, updateData); // Gửi userId thay vì email
+      const updateData = { password: data.password };
+      await updatePasword(userProfile._id, updateData);
       alert("Đổi mật khẩu thành công!");
       navigation.goBack();
     } catch (error) {
@@ -83,6 +81,7 @@ function ChangePassword() {
       setError("api", { message: "Đã xảy ra lỗi khi đổi mật khẩu." });
     }
   };
+  
   
   
 
