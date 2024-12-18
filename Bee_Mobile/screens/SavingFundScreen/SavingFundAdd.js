@@ -73,32 +73,32 @@ const SavingFundAdd = () => {
         message: "Vui lòng nhập đầy đủ các trường thông tin.",
         type: "warning",
         icon: "warning",
-        floating: true,    
+        floating: true,
       });
       return;
     }
 
-   const numericAmount = parseFloat(targetAmount.replace(/,/g, ''));
-  
-  if (isNaN(numericAmount)) {
-    showMessage({
-      message: "Số tiền không hợp lệ.",
-      type: "warning",
-      icon: "warning",
-      floating: true,
-    });
-    return;
-  }
-   // Kiểm tra số tiền lớn hơn 10,000
-   if (numericAmount < 10000) {
-    showMessage({
-      message: "Số tiền mục tiêu phải lớn hơn 10,000.",
-      type: "warning",
-      icon: "warning",
-      floating: true,
-    });
-    return;
-  }
+    const numericAmount = parseFloat(targetAmount.replace(/,/g, ''));
+
+    if (isNaN(numericAmount)) {
+      showMessage({
+        message: "Số tiền không hợp lệ!",
+        type: "warning",
+        icon: "warning",
+        floating: true,
+      });
+      return;
+    }
+    // Kiểm tra số tiền lớn hơn 10,000
+    if (numericAmount < 10000) {
+      showMessage({
+        message: "Số tiền mục tiêu phải lớn hơn 10,000 đ",
+        type: "warning",
+        icon: "warning",
+        floating: true,
+      });
+      return;
+    }
 
 
     const newSavingFund = {
@@ -118,20 +118,26 @@ const SavingFundAdd = () => {
       setSelectedCategory(null);
       setStartDate(moment().format('DD/MM/YYYY'));
       setEndDate(moment().format('DD/MM/YYYY'));
-navigation.navigate('SavingFundList', { refresh: true });
-} catch (error) {
-  let errorMessage = 'Có lỗi xảy ra. Vui lòng thử lại!';
-  if (error.message) {
-    errorMessage = error.message;
-  } else if (error.response?.data?.message) {
-    errorMessage = error.response.data.message;
-  }
-  showMessage({
-    message: errorMessage,
-    type: "danger",
-    icon: "danger",
-    floating: true,
-});
+      navigation.navigate('SavingFundList', { refresh: true });
+      showMessage({
+        message: "Thêm thành công!",
+        type: "success",
+        icon: "success",
+        floating: true,
+      });
+    } catch (error) {
+      let errorMessage = 'Có lỗi xảy ra. Vui lòng thử lại!';
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      showMessage({
+        message: errorMessage,
+        type: "danger",
+        icon: "danger",
+        floating: true,
+      });
 
 
     } finally {
@@ -166,7 +172,7 @@ navigation.navigate('SavingFundList', { refresh: true });
           />
         </View>
         <View style={tw`flex-row items-center border-b border-indigo-100 p-2 mb-4`}>
-        <Ionicons name="card-outline" size={27} color="#707070" />
+          <Ionicons name="card-outline" size={27} color="#707070" />
           <TextInput
             placeholder="Số tiền mục tiêu"
             style={tw`flex-1 text-xl ml-2 text-indigo-600`}
@@ -180,20 +186,20 @@ navigation.navigate('SavingFundList', { refresh: true });
           />
         </View>
         <View style={tw`flex-row items-center h-10 mt-2 mb-2`}>
-  <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={tw`flex-1 mr-2`}>
-    <View style={tw`flex-row items-center border border-indigo-200 bg-indigo-50 rounded-lg px-2 h-10 mb-4`}>
-      <Ionicons name="calendar" size={24} color="#707070" />
-      <TextInput style={tw`flex-1 ml-2`} value={startDate} editable={false} />
-    </View>
-  </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={tw`flex-1 mr-2`}>
+            <View style={tw`flex-row items-center border border-indigo-200 bg-indigo-50 rounded-lg px-2 h-10 mb-4`}>
+              <Ionicons name="calendar" size={24} color="#707070" />
+              <TextInput style={tw`flex-1 ml-2`} value={startDate} editable={false} />
+            </View>
+          </TouchableOpacity>
 
-  <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={tw`flex-1`}>
-    <View style={tw`flex-row items-center border border-indigo-200 bg-indigo-50 rounded-lg px-2 h-10 mb-4`}>
-      <Ionicons name="calendar" size={24} color="#707070" />
-      <TextInput style={tw`flex-1 ml-2`} value={endDate} editable={false} />
-    </View>
-  </TouchableOpacity>
-</View>
+          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={tw`flex-1`}>
+            <View style={tw`flex-row items-center border border-indigo-200 bg-indigo-50 rounded-lg px-2 h-10 mb-4`}>
+              <Ionicons name="calendar" size={24} color="#707070" />
+              <TextInput style={tw`flex-1 ml-2`} value={endDate} editable={false} />
+            </View>
+          </TouchableOpacity>
+        </View>
 
 
         {showStartDatePicker && (
@@ -204,7 +210,7 @@ navigation.navigate('SavingFundList', { refresh: true });
             onChange={(event, date) => handleDateChange(event, date, 'start')}
           />
         )}
-       
+
         {showEndDatePicker && (
           <DateTimePicker
             value={moment(endDate, 'DD/MM/YYYY').toDate()}
@@ -212,23 +218,23 @@ navigation.navigate('SavingFundList', { refresh: true });
             display="default"
             onChange={(event, date) => handleDateChange(event, date, 'end')}
           />
-)}
-          <View style={tw`flex-row items-center border-b border-indigo-200 p-2 mb-4`}>
-        <Ionicons name="list" size={24} color="#707070" />
-        <TouchableOpacity style={tw`flex-1 ml-2`} onPress={() => Alert.alert('Chọn danh mục')}>
-          <View style={tw`flex-row items-center`}>
-            <Text style={tw`text-lg`}>
-              {selectedCategory ? categories.find(cat => cat._id === selectedCategory)?.name : 'Chọn danh mục'}
-            </Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={tw`p-2 bg-indigo-600 rounded-full`}
-          onPress={() => navigation.navigate('AddCategoryScreen')}
-        >
-          <Ionicons name="add" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
+        )}
+        <View style={tw`flex-row items-center border-b border-indigo-200 p-2 mb-4`}>
+          <Ionicons name="list" size={24} color="#707070" />
+          <TouchableOpacity style={tw`flex-1 ml-2`} onPress={() => Alert.alert('Chọn danh mục')}>
+            <View style={tw`flex-row items-center`}>
+              <Text style={tw`text-lg`}>
+                {selectedCategory ? categories.find(cat => cat._id === selectedCategory)?.name : 'Chọn danh mục'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={tw`p-2 bg-indigo-600 rounded-full`}
+            onPress={() => navigation.navigate('AddCategoryScreen')}
+          >
+            <Ionicons name="add" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
         {isLoadingCategories ? (
           <ActivityIndicator size="large" color="#5A5DD1" />
         ) : categories.length > 0 ? (
@@ -266,8 +272,8 @@ navigation.navigate('SavingFundList', { refresh: true });
             ))}
           </View>
         ) : (
-             <Text style={tw`text-center mb-2`}>Không tìm thấy danh mục nào.</Text>       
-        )}   
+          <Text style={tw`text-center mb-2`}>Không tìm thấy danh mục nào.</Text>
+        )}
         <TouchableOpacity
           style={[
             tw`p-3 rounded-lg mt-4`,

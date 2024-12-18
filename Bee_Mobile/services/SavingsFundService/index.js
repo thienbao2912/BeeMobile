@@ -250,7 +250,7 @@ export const acceptInvite = async (code) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error accepting invite:', error);
+    // console.error('Error accepting invite:', error);
     throw error;
   }
 };
