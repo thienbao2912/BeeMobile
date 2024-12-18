@@ -13,27 +13,8 @@ export default function ExpenseList({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [transaction, setTransaction] = useState(null);
-  const filters = ["Tất cả", "Khoảng tiền", "Khoảng thời gian"];
 
-  const handleOpenModal = (transaction) => {
-    setTransaction(transaction);
-    setIsModalVisible(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
-    setTransaction(null);
-  };
-
- 
   useEffect(() => {
     const loadUserId = async () => {
       const id = await SecureStore.getItemAsync('userId');
@@ -118,7 +99,15 @@ export default function ExpenseList({ route, navigation }) {
       acc[date].push(transaction);
       return acc;
     }, {})
-  ).map(([date, transactions]) => ({ date, data: transactions }));
+  )
+    .map(([date, transactions]) => ({
+      date,
+      data: transactions.sort(
+        (a, b) => new Date(b.createdAt || b.updatedAt) - new Date(a.createdAt || a.updatedAt)
+      ),
+    }))
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
@@ -147,9 +136,9 @@ export default function ExpenseList({ route, navigation }) {
         <Text style={[tw`text-lg font-medium`, item.type === 'expense' ? tw`text-red-600` : tw`text-green-600`]}>
           {item.type === 'expense' ? '-' : '+'}
           {new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-  }).format(item.amount)}
+            style: 'currency',
+            currency: 'VND',
+          }).format(item.amount)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -158,16 +147,16 @@ export default function ExpenseList({ route, navigation }) {
   const renderHiddenItem = (data) => (
     <View style={tw`flex-row justify-end rounded-lg`}>
       <TouchableOpacity
-        style={tw`bg-green-400 justify-center items-center w-20 h-18 rounded-lg`}
+        style={tw`bg-yellow-100 justify-center items-center w-20 h-18 rounded-lg`}
         onPress={() => handleEdit(data.item)}
       >
-        <Ionicons name="pencil" size={24} color="white" />
+          <Ionicons name="pencil" size={30} style={tw`text-yellow-400`} />
       </TouchableOpacity>
       <TouchableOpacity
-        style={tw`bg-red-400 justify-center items-center w-20 h-18 rounded-lg mr-1`}
+        style={tw`bg-red-200 justify-center items-center w-20 h-18 rounded-lg mr-1`}
         onPress={() => handleDelete(data.item)}
       >
-        <Ionicons name="trash" size={24} color="white" />
+         <Ionicons name="trash-outline" size={30} style={tw`text-red-400`} />
       </TouchableOpacity>
     </View>
   );
@@ -179,30 +168,43 @@ export default function ExpenseList({ route, navigation }) {
   );
 
   if (loading) {
-    return <ActivityIndicator size={40} color="#0000ff" />;
+    return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
   return (
     <>
-      <SwipeListView
-        useSectionList
-        sections={groupedTransactions}
-        keyExtractor={(item) => item._id}
-        renderItem={renderItem}
-        renderHiddenItem={renderHiddenItem}
-        renderSectionHeader={renderSectionHeader}
-        rightOpenValue={-150}
-        stopRightSwipe={-150}
-        previewRowKey={"0"}
-        previewOpenValue={-40}previewOpenDelay={3000}
-        disableRightSwipe
-      />
+      {transactions.length === 0 ? (
+        <View style={tw`flex-1 bg-gray-100 items-center justify-center`}>
+          <Image source={require('../../../assets/images/cloud.png')}
+            style={tw`h-20 w-20 rounded-full mb-4`}
+          />
+          <Text style={tw`text-gray-700 text-xl font-semibold text-center`}>
+            Chưa có giao dịch nào cả
+          </Text>
+        </View>
+      ) : (
+        <SwipeListView
+          useSectionList
+          sections={groupedTransactions}
+          keyExtractor={(item) => item._id}
+          renderItem={renderItem}
+          renderHiddenItem={renderHiddenItem}
+          renderSectionHeader={renderSectionHeader}
+          rightOpenValue={-150}
+          stopRightSwipe={-150}
+          previewRowKey={"0"}
+          previewOpenValue={-40}
+          previewOpenDelay={3000}
+          disableRightSwipe
+        />
+      )}
       <CustomDeleteModal
         isVisible={isModalVisible}
         onConfirm={confirmDeleteExpense}
         onCancel={cancelDeleteExpense}
-        message="Bạn chắc chắn xóa giao dịch này?"
+        message="Bạn chắc chắn muốn xóa?"
       />
     </>
   );
+
 }

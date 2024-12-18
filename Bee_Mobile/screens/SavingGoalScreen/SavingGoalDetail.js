@@ -22,45 +22,65 @@ export default function SavingGoalDetail({ route, navigation }) {
   const progress = goal.targetAmount ? currentAmount / goal.targetAmount : 0;
 
   const handleAddTransaction = async () => {
-    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+    // Loại bỏ dấu phẩy và chuyển chuỗi thành số
+    const cleanedAmount = parseFloat(amount.replace(/,/g, '')); 
+    
+    if (!cleanedAmount || isNaN(cleanedAmount) || cleanedAmount <= 0) {
       Alert.alert('Lỗi', 'Vui lòng nhập số tiền hợp lệ.');
       return;
     }
-
+  
+    const remainingAmount = goal.targetAmount - currentAmount;
+  
+    if (cleanedAmount > remainingAmount) {
+      Alert.alert(
+        'Lỗi',
+        `Số tiền nạp vượt quá mục tiêu tiết kiệm. Bạn chỉ cần nạp thêm ${remainingAmount.toLocaleString()}đ để hoàn thành mục tiêu.`
+      );
+      return;
+    }
+  
     try {
       const userId = await SecureStore.getItemAsync('userId');
       if (!userId) {
         Alert.alert('Lỗi', 'Không tìm thấy thông tin người dùng.');
         return;
       }
-
+  
       const transaction = {
         userId,
         goalId: goal._id,
-        amount: parseFloat(amount),
+        amount: cleanedAmount, // Sử dụng số tiền đã làm sạch
         note,
         date: new Date(),
       };
-
+  
       const response = await addTransactionService(transaction);
-
-      if (response.error) {
-        throw new Error(response.error);
+  
+      // Kiểm tra phản hồi từ backend
+      if (response.message === 'Số dư không đủ để nạp tiền.') {
+        Alert.alert('Lỗi', response.message);
+        return;
       }
-
+  
+      // Cập nhật số tiền đã tiết kiệm và lịch sử giao dịch
       setCurrentAmount(response.updatedAmount);
       setTransactionHistory([response.transaction, ...transactionHistory]);
-
+  
+      // Reset form
       setAmount('');
       setNote('');
       setShowDeposit(false);
       Alert.alert('Thành công', 'Nạp tiền thành công.');
     } catch (error) {
-      console.error('Error in handleAddTransaction:', error);
-      Alert.alert('Lỗi', 'Không thể nạp tiền. Vui lòng thử lại.');
+      if (error.message === 'Số dư không đủ để nạp tiền.') {
+        Alert.alert('Lỗi', error.message);
+      } else {
+        Alert.alert('Lỗi', 'Không thể nạp tiền. Vui lòng thử lại.');
+      }
     }
   };
-
+  
   return (
     <ScrollView style={tw`p-5 bg-gray-100`}>
       <View style={tw`bg-white p-4 rounded-lg mb-4 relative`}>
@@ -71,7 +91,14 @@ export default function SavingGoalDetail({ route, navigation }) {
           <Icon name="edit" size={24} color="#6B46C1" />
         </TouchableOpacity>
         <View style={tw`flex-row items-center`}>
-          <Image source={require("../../assets/images/favicon.png")} style={tw`w-12 h-12 rounded-full mr-4`} />
+        <Image
+                  source={
+                    goal.categoryId.image && goal.categoryId.image
+                      ? { uri: goal.categoryId.image }
+                      : require("../../assets/images/rabbit.png")
+                  }
+                  style={tw`w-10 h-10 mr-5`}
+                />
           <View style={tw`flex-1`}>
             <Text style={tw`font-bold text-lg`}>{goal.name}</Text>
             <Text style={tw`text-gray-500`}>
@@ -92,10 +119,14 @@ export default function SavingGoalDetail({ route, navigation }) {
             ]}
           />
         </View>
-
-        <Text style={tw`${progress === 1 ? 'text-green-500' : 'text-blue-500'} font-bold mt-2`}>
-          {progress === 1 ? 'Hoàn thành' : `Đã hoàn thành ${Math.floor(progress * 100)}%`}
-        </Text>
+        <View style={tw`flex-row justify-between items-center mt-2`}>
+  <Text style={tw`text-left flex-1 ${progress === 1 ? 'text-green-500' : 'text-blue-500'} font-bold`}>
+    {progress === 1 ? 'Hoàn thành' : `Đã hoàn thành ${Math.floor(progress * 100)}%`}
+  </Text>
+  <Text style={tw`text-right flex-1 text-green-600 font-bold`}>
+    Còn lại: {(goal.targetAmount - currentAmount).toLocaleString()}đ
+  </Text>
+</View>
       </View>
 
       <TouchableOpacity
@@ -113,7 +144,11 @@ export default function SavingGoalDetail({ route, navigation }) {
             placeholder="Nhập số tiền"
             keyboardType="numeric"
             value={amount}
-            onChangeText={setAmount}
+            onChangeText={(text) => {
+              const numericText = text.replace(/[^0-9]/g, ''); // Loại bỏ ký tự không phải số
+              const formattedText = Number(numericText).toLocaleString(); // Thêm dấu phẩy
+              setAmount(formattedText);
+            }}
           />
           <Text style={tw`font-bold mb-1 text-gray-600`}>Ghi chú</Text>
           <TextInput

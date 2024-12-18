@@ -1,6 +1,6 @@
 import request from "../../config/API/index";
 import * as SecureStore from 'expo-secure-store';
-const API_URL = 'http://192.168.1.13:4000/api';
+const API_URL = 'http://10.0.2.2:4000/api';
 const saveToken = async (key, value) => {
     try {
         await SecureStore.setItemAsync(key, value);
@@ -13,7 +13,7 @@ const getToken = async (key) => {
     try {
         const value = await SecureStore.getItemAsync(key);
         return value;
-    } catch (error) {
+    } catch (error) { 
         console.error('Error getting token:', error);
         return null;
     }
@@ -153,7 +153,7 @@ const getUserProfile = async () => {
         const token = await SecureStore.getItemAsync('token');
         const response = await fetch(`${API_URL}/auth/get-profile/${userId}`, {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`  
             }
         });
         if (!response.ok) {

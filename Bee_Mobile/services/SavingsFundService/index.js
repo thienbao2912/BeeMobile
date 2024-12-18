@@ -1,4 +1,4 @@
-const API_URL = 'http://192.168.1.13:4000/api'; // Đảm bảo đúng port của backend
+const API_URL = 'http://10.0.2.2:4000/api'; // Đảm bảo đúng port của backend
 
 import * as SecureStore from 'expo-secure-store';
 
@@ -65,7 +65,6 @@ export const addSavingsFund = async (fundData) => {
     const data = await response.json();
     return data; // Trả về quỹ mới được tạo
   } catch (error) {
-    console.error('Error in addSavingsFund:', error);
     throw error; // Ném lỗi để frontend xử lý
   }
 };
@@ -88,9 +87,9 @@ export const fetchAllCategories = async () => {
 
     if (!response.ok) {
       const errorData = await response.json(); // Lấy dữ liệu lỗi từ phản hồi
-      console.error('Server Response:', errorData); // Ghi lại phản hồi từ serverthrow new Error(errorData.message || 'Failed to fetch categories');
+      console.error('Server Response:', errorData); // Ghi lại phản hồi từ server
+      throw new Error(errorData.message || 'Failed to fetch categories');
     }
-
     const data = await response.json();
     return data;
   } catch (error) {
@@ -151,7 +150,7 @@ export const addTransaction = async (fundId, transactionData) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error in addTransaction:', error);
+    // console.error('Error in addTransaction:', error);
     throw error;
   }
 };
@@ -197,60 +196,106 @@ export const fetchTransaction = async (fundId) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error(`Error fetching saving fund with ID ${fundId}:`, error);throw error;
-}
+    console.error(`Error fetching saving fund with ID ${fundId}:`, error);
+    throw error;
+  }
 };
 
 export const sendInvitation = async (fundId, email) => {
-try {
-  const token = await SecureStore.getItemAsync('token');
-  const response = await fetch(`${API_URL}/fund/send-invite-code`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-auth-token': token, 
-    },
-    body: JSON.stringify({ fundId, email }),
-  });
+  try {
+    const token = await SecureStore.getItemAsync('token');
+    const response = await fetch(`${API_URL}/fund/send-invite-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token, 
+      },
+      body: JSON.stringify({ fundId, email }),
+    });
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to send invitation.");
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to send invitation.");
+    }
+    return data;
+  } catch (error) {
+    throw new Error(error.message || "Something went wrong.");
   }
-  return data;
-} catch (error) {
-  throw new Error(error.message || "Something went wrong.");
-}
 };
 
 // Service gọi API để chấp nhận mã xác nhận tham gia quỹ
 export const acceptInvite = async (code) => {
-try {
+  try {
+    const token = await SecureStore.getItemAsync('token');
+    if (!token) {
+      throw new Error('Authentication token is missing.');
+    }
+
+    // Gửi yêu cầu POST đến API với mã xác nhận và token xác thực
+    const response = await fetch(`${API_URL}/fund/accept-invite`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to accept the invite');
+    }
+
+    // Trả về dữ liệu từ phản hồi (có thể là thông báo thành công hoặc dữ liệu quỹ)
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    // console.error('Error accepting invite:', error);
+    throw error;
+  }
+};
+export const deleteSavingsFund = async (fundId) => {
   const token = await SecureStore.getItemAsync('token');
-  if (!token) {
-    throw new Error('Authentication token is missing.');
+    if (!token) {
+      throw new Error('Authentication token is missing.');
+    }
+  try {
+    const response = await fetch(`${API_URL}/savingsFund/${fundId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to delete savingsFund');
+    }
+    return await response.json(); 
+  } catch (error) {
+    throw error; 
   }
-
-  // Gửi yêu cầu POST đến API với mã xác nhận và token xác thực
-  const response = await fetch(`${API_URL}/fund/accept-invite`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-auth-token': token,
-    },
-    body: JSON.stringify({ code }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Failed to accept the invite');
+};
+export const editSavingsFund = async (fundId, updatedData) => {
+  const token = await SecureStore.getItemAsync('token');
+    if (!token) {
+      throw new Error('Authentication token is missing.');
+    }
+  try {
+    const response = await fetch(`${API_URL}/savingsFund/${fundId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+      body: JSON.stringify(updatedData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to edit savingsFund');
+    }
+    return await response.json(); 
+  } catch (error) {
+    throw error; 
   }
-
-  // Trả về dữ liệu từ phản hồi (có thể là thông báo thành công hoặc dữ liệu quỹ)
-  const data = await response.json();
-  return data;
-} catch (error) {
-  console.error('Error accepting invite:', error);
-  throw error;
-}
 };

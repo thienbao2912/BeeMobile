@@ -6,7 +6,10 @@ import Home from "../screens/HomeSreen/Home";
 import SavingFundList from "../screens/SavingFundScreen/SavingFundList";
 import SavingFundDetail from "../screens/SavingFundScreen/SavingFundDetail";
 import SavingFundAdd from "../screens/SavingFundScreen/SavingFundAdd";
-// import ExpenseDetail from "../screens/TransactionSrceen/ExpenseSrceen/ExpenseDetail";
+import ExpenseDetail from "../screens/TransactionSrceen/ExpenseSrceen/ExpenseDetail";
+import AddCategoryScreen from "../screens/CategoriesScreen/AddCategoryScreen";
+import CategoryListScreen from "../screens/CategoriesScreen/CategoriesListScreen";
+import SavingFundEdit from "../screens/SavingFundScreen/SavingFundEdit";
 const Stack = createStackNavigator();
 
 function AppStack() {
@@ -23,22 +26,36 @@ function AppStack() {
         options={{ title: 'Danh sách chi tiêu' }}  // Ví dụ đặt tiêu đề cho trang ExpenseList
       />
       <Stack.Screen
-       name="SavingFundList" 
-       component={SavingFundList} 
-       options={{ title: 'Danh sách quỹ chung' }} />
+        name="SavingFundList"
+        component={SavingFundList}
+        options={{ title: 'Danh sách quỹ chung' }} />
       <Stack.Screen
-       name="SavingFundDetail" 
-       component={SavingFundDetail} 
-       options={{ title: 'Chi tiết' }} />
-      <Stack.Screen 
-      name="SavingFundAdd"
-       component={SavingFundAdd} 
-       options={{ title: 'Thêm quỹ chung' }} />
-      {/* <Stack.Screen
+        name="SavingFundDetail"
+        component={SavingFundDetail}
+        options={{ title: 'Chi tiết' }} />
+      <Stack.Screen
+        name="SavingFundAdd"
+        component={SavingFundAdd}
+        options={{ title: 'Thêm quỹ chung' }} />
+         <Stack.Screen
+        name="SavingFundEdit"
+        component={SavingFundEdit}
+        options={{ title: 'Chỉnh sửa quỹ chung' }} />
+      <Stack.Screen
+        name="AddCategoryScreen"
+        component={AddCategoryScreen}
+        options={{ title: "Thêm danh sách danh mục" }}
+      />
+      <Stack.Screen
+        name="CategoryListScreen"
+        component={CategoryListScreen}
+        options={{ title: "Danh sách danh mục" }}
+      />
+      <Stack.Screen
       name="ExpenseDetail"
       component={ExpenseDetail}
       options={{ title: 'Danh sách chi tiêu' }}  // Ví dụ đặt tiêu đề cho trang ExpenseList
-    /> */}
+    />
     </Stack.Navigator>
 
 

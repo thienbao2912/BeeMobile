@@ -11,6 +11,7 @@ import FlashMessage from "react-native-flash-message";
               <AuthStack />
           </NavigationContainer>
           <FlashMessage position="top" />
+        
           </>
         );
 }
