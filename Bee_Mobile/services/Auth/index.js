@@ -13,7 +13,7 @@ const getToken = async (key) => {
     try {
         const value = await SecureStore.getItemAsync(key);
         return value;
-    } catch (error) {
+    } catch (error) { 
         console.error('Error getting token:', error);
         return null;
     }
