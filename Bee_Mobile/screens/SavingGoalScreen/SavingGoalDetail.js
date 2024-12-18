@@ -22,14 +22,17 @@ export default function SavingGoalDetail({ route, navigation }) {
   const progress = goal.targetAmount ? currentAmount / goal.targetAmount : 0;
 
   const handleAddTransaction = async () => {
-    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+    // Loại bỏ dấu phẩy và chuyển chuỗi thành số
+    const cleanedAmount = parseFloat(amount.replace(/,/g, '')); 
+    
+    if (!cleanedAmount || isNaN(cleanedAmount) || cleanedAmount <= 0) {
       Alert.alert('Lỗi', 'Vui lòng nhập số tiền hợp lệ.');
       return;
     }
   
     const remainingAmount = goal.targetAmount - currentAmount;
   
-    if (parseFloat(amount) > remainingAmount) {
+    if (cleanedAmount > remainingAmount) {
       Alert.alert(
         'Lỗi',
         `Số tiền nạp vượt quá mục tiêu tiết kiệm. Bạn chỉ cần nạp thêm ${remainingAmount.toLocaleString()}đ để hoàn thành mục tiêu.`
@@ -47,7 +50,7 @@ export default function SavingGoalDetail({ route, navigation }) {
       const transaction = {
         userId,
         goalId: goal._id,
-        amount: parseFloat(amount),
+        amount: cleanedAmount, // Sử dụng số tiền đã làm sạch
         note,
         date: new Date(),
       };
@@ -78,7 +81,6 @@ export default function SavingGoalDetail({ route, navigation }) {
     }
   };
   
-
   return (
     <ScrollView style={tw`p-5 bg-gray-100`}>
       <View style={tw`bg-white p-4 rounded-lg mb-4 relative`}>
@@ -117,10 +119,14 @@ export default function SavingGoalDetail({ route, navigation }) {
             ]}
           />
         </View>
-
-        <Text style={tw`${progress === 1 ? 'text-green-500' : 'text-blue-500'} font-bold mt-2`}>
-          {progress === 1 ? 'Hoàn thành' : `Đã hoàn thành ${Math.floor(progress * 100)}%`}
-        </Text>
+        <View style={tw`flex-row justify-between items-center mt-2`}>
+  <Text style={tw`text-left flex-1 ${progress === 1 ? 'text-green-500' : 'text-blue-500'} font-bold`}>
+    {progress === 1 ? 'Hoàn thành' : `Đã hoàn thành ${Math.floor(progress * 100)}%`}
+  </Text>
+  <Text style={tw`text-right flex-1 text-green-600 font-bold`}>
+    Còn lại: {(goal.targetAmount - currentAmount).toLocaleString()}đ
+  </Text>
+</View>
       </View>
 
       <TouchableOpacity
