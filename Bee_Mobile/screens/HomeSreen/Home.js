@@ -218,35 +218,64 @@ contentContainerStyle={tw`bg-gray-100`}
               </TouchableOpacity>
             )}
           />
-          {filterOption === "custom" && (
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 10 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ marginBottom: 5, fontSize: 14, color: "#666" }}>Từ ngày</Text>
-                <DateTimePicker
-                  value={startDate}
-                  mode="date"
-                  display="default"
-                  onChange={(event, selectedDate) => {
-                    setShowStartPicker(false);
-                    if (selectedDate) setStartDate(selectedDate);
-                  }}
-                />
-              </View>
+         {filterOption === "custom" && (
+  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 10 }}>
+    {/* Picker cho ngày bắt đầu */}
+    <View style={{ flex: 1, marginRight: 10 }}>
+      <Text style={{ marginBottom: 5, fontSize: 14, color: "#666" }}>Từ ngày</Text>
+      <TouchableOpacity
+        onPress={() => setShowStartPicker(true)}
+        style={{
+          padding: 10,
+          borderWidth: 1,
+          borderColor: "#ccc",
+          borderRadius: 5,
+        }}
+      >
+        <Text>{startDate ? startDate.toLocaleDateString() : "Chọn ngày"}</Text>
+      </TouchableOpacity>
+      {showStartPicker && (
+        <DateTimePicker
+          value={startDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowStartPicker(false);
+            if (selectedDate) setStartDate(selectedDate);
+          }}
+        />
+      )}
+    </View>
 
-              <View style={{ flex: 1 }}>
-                <Text style={{ marginBottom: 5, fontSize: 14, color: "#666" }}>Đến ngày</Text>
-                <DateTimePicker
-                  value={endDate}
-                  mode="date"
-                  display="default"
-                  onChange={(event, selectedDate) => {
-                    setShowEndPicker(false);
-                    if (selectedDate) setEndDate(selectedDate);
-                  }}
-                />
-              </View>
-            </View>
-          )}
+    {/* Picker cho ngày kết thúc */}
+    <View style={{ flex: 1 }}>
+      <Text style={{ marginBottom: 5, fontSize: 14, color: "#666" }}>Đến ngày</Text>
+      <TouchableOpacity
+        onPress={() => setShowEndPicker(true)}
+        style={{
+          padding: 10,
+          borderWidth: 1,
+          borderColor: "#ccc",
+          borderRadius: 5,
+        }}
+      >
+        <Text>{endDate ? endDate.toLocaleDateString() : "Chọn ngày"}</Text>
+      </TouchableOpacity>
+      {showEndPicker && (
+        <DateTimePicker
+          value={endDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowEndPicker(false);
+            if (selectedDate) setEndDate(selectedDate);
+          }}
+        />
+      )}
+    </View>
+  </View>
+)}
+
 
           <View style={tw`p-5`}>
             <Card title="Thống kê">

@@ -1,6 +1,6 @@
 import request from "../../config/API/index";
 import * as SecureStore from 'expo-secure-store';
-const API_URL = 'http://10.0.2.2:4000/api';
+const API_URL = 'http://192.168.1.15:4000/api';
 const saveToken = async (key, value) => {
     try {
         await SecureStore.setItemAsync(key, value);
@@ -13,7 +13,7 @@ const getToken = async (key) => {
     try {
         const value = await SecureStore.getItemAsync(key);
         return value;
-    } catch (error) {
+    } catch (error) { 
         console.error('Error getting token:', error);
         return null;
     }
@@ -55,20 +55,20 @@ const verifyOldPassword = async (userId, oldPassword) => {
 
 const validateOldPassword = async (userId, oldPassword) => {
     try {
-      // Gửi userId và oldPassword vào request
-      const res = await request({
+      const result = await request({
         method: "POST",
         path: "/api/auth/verify-password",
-        data: { userId, oldPassword },  // Sử dụng userId thay vì email
+        data: { userId, oldPassword }, // Payload gửi lên server
       });
-        console.log(res.data);
-  
-      return res.data;  // Trả về kết quả từ server
+      console.log("API Response:", result); // Log kết quả trả về từ API
+      return result; // Trả về kết quả
     } catch (error) {
-      console.error("Validate old password error:", error);
-      throw error;
+      console.error("Error in validateOldPassword:", error);
+      return undefined; // Xử lý khi gặp lỗi
     }
+    
   };
+  
   
   
   
@@ -181,18 +181,29 @@ const getUser = async (id) => {
         throw error;
     }
 };
-
-// Hàm cập nhật người dùng
-const updateUser = async (userId, { email, password, name, avatar, role }) => {
-    const data = { email, password, name, avatar, role };
-    const res = await request({
+const updateUser = async (name = null, avatar = null) => {
+    const userId = await getToken("userId");
+    const data = {};
+  
+    if (name) data.name = name;
+    if (avatar) data.avatar = avatar;
+  
+    try {
+      console.log("Sending update request with data:", data);
+      const res = await request({
         method: "PUT",
         path: `/api/auth/update/${userId}`,
-        data: data
-    });
+        data: data,
+      });
+      console.log("API Response:", res);
+      return res; // Trả về phản hồi API
+    } catch (error) {
+      console.error("Error updating user:", error);
+      throw error;
+    }
+  };
+  
 
-    return res;
-};
 
 //Hàm cập nhật mật khẩu
 const updatePasword = async (userId, {  password,  }) => {

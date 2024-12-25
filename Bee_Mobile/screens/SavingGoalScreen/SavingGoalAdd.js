@@ -64,12 +64,15 @@ export default function AddGoal({ navigation }) {
     setShowEndDatePicker(Platform.OS === "ios");
     setEndDate(currentDate);
   };
-
-  const handleNumericInput = (text, setState) => {
-    const numericValue = text.replace(/[^0-9]/g, "");
-    setState(numericValue);
+  const formatNumberWithCommas = (num) => {
+    return num.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
-
+  
+  const handleNumericInput = (input, setState) => {
+    const numericValue = input.replace(/[^0-9]/g, "");
+    setState(formatNumberWithCommas(numericValue));
+  };
+  
   const handleCategoryPress = (category) => {
     setSelectedCategory(category);
   };
@@ -99,8 +102,8 @@ export default function AddGoal({ navigation }) {
     const userId = await SecureStore.getItemAsync("userId");
     const newGoal = {
       name: goalName,
-      targetAmount: parseInt(goalAmount, 10),
-      currentAmount: parseInt(savedAmount, 10),
+      targetAmount: parseInt(goalAmount.replace(/,/g, ""), 10),
+    currentAmount: parseInt(savedAmount.replace(/,/g, ""), 10), 
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       categoryId: selectedCategory,
@@ -111,7 +114,6 @@ export default function AddGoal({ navigation }) {
       await addSavingGoal(newGoal);
       navigation.navigate("SavingGoalList");
 
-      // Reset form
       setGoalName("");
       setGoalAmount("");
       setSavedAmount("");
@@ -184,24 +186,25 @@ export default function AddGoal({ navigation }) {
             <View style={{ flex: 1, marginRight: 5 }}>
               <Text style={tw`font-bold mb-1`}>Số tiền mục tiêu</Text>
               <TextInput
-                placeholder="Số tiền mục tiêu"
-                value={goalAmount}
-                onChangeText={(text) => handleNumericInput(text, setGoalAmount)}
-                keyboardType="numeric"
-                style={tw`border border-gray-300 p-3 rounded-lg mb-1`}
-              />
+  placeholder="Số tiền mục tiêu"
+  value={goalAmount}
+  onChangeText={(input) => handleNumericInput(input, setGoalAmount)}
+  keyboardType="numeric"
+  style={tw`border border-gray-300 p-3 rounded-lg mb-1`}
+/>
+
               {errors.goalAmount && <Text style={tw`text-red-500`}>{errors.goalAmount}</Text>}
             </View>
 
             <View style={{ flex: 1, marginLeft: 5 }}>
               <Text style={tw`font-bold mb-1`}>Số tiền tiết kiệm</Text>
               <TextInput
-                placeholder="Số tiền tiết kiệm"
-                value={savedAmount}
-                onChangeText={(text) => handleNumericInput(text, setSavedAmount)}
-                keyboardType="numeric"
-                style={tw`border border-gray-300 p-3 rounded-lg mb-1`}
-              />
+  placeholder="Số tiền tiết kiệm"
+  value={savedAmount}
+  onChangeText={(input) => handleNumericInput(input, setSavedAmount)}
+  keyboardType="numeric"
+  style={tw`border border-gray-300 p-3 rounded-lg mb-1`}
+/>
               {errors.savedAmount && <Text style={tw`text-red-500`}>{errors.savedAmount}</Text>}
             </View>
           </View>

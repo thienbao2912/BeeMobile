@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import tw from 'twrnc';
 import { View, Text, ScrollView, TouchableOpacity, Modal, Alert, SafeAreaView, Image, StatusBar } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { fetchAllBudgets, deleteBudget } from '../../services/Budget'; // Import deleteBudget from service
-import { useNavigation, useRoute } from '@react-navigation/native'; // Thêm useRoute để lấy tham số
+import { fetchAllBudgets, deleteBudget } from '../../services/Budget'; // Import deleteBudget từ service
+import { useNavigation, useRoute } from '@react-navigation/native'; // Dùng useRoute để lấy tham số
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 export default function BudgetScreen() {
@@ -33,13 +33,13 @@ export default function BudgetScreen() {
 
     // Fetch budgets from the API when userId changes
     useEffect(() => {
-        if (!userId) return; // Đảm bảo có userId
+        if (!userId) return;
 
         const fetchBudgets = async () => {
             try {
-                setLoading(true);  // Bắt đầu tải lại dữ liệu
+                setLoading(true);
                 const budgetData = await fetchAllBudgets(userId);
-                setBudgets(budgetData); // Assuming budgetData matches the expected structure
+                setBudgets(budgetData);
             } catch (error) {
                 console.error('Error loading budgets:', error);
                 Alert.alert('Lỗi', 'Không thể tải danh sách ngân sách');
@@ -49,16 +49,16 @@ export default function BudgetScreen() {
         };
 
         fetchBudgets();
-    }, [userId]);  // fetch lại khi userId thay đổi
+    }, [userId]);
 
     // Lắng nghe sự kiện khi quay lại màn hình danh sách từ màn hình cập nhật
     useEffect(() => {
-        if (route.params?.refresh) { // Kiểm tra nếu có truyền refresh vào
-            setLoading(true);
+        if (route.params?.refresh) {
             const fetchBudgets = async () => {
                 try {
+                    setLoading(true);
                     const budgetData = await fetchAllBudgets(userId);
-                    setBudgets(budgetData); // Cập nhật lại dữ liệu
+                    setBudgets(budgetData);
                 } catch (error) {
                     console.error('Error loading budgets:', error);
                 } finally {
@@ -67,7 +67,7 @@ export default function BudgetScreen() {
             };
             fetchBudgets();
         }
-    }, [route.params?.refresh]); // Lắng nghe sự thay đổi của refresh
+    }, [route.params?.refresh]);
 
     const openDeleteModal = (budget) => {
         if (budget) {
@@ -84,11 +84,8 @@ export default function BudgetScreen() {
             setModalVisible(false);
             setBudgetToDelete(null);
 
-            // Sau khi xóa, gọi lại API để tải lại danh sách ngân sách
-            setLoading(true); // Đánh dấu quá trình tải lại
             const budgetData = await fetchAllBudgets(userId);
-            setBudgets(budgetData); // Cập nhật lại dữ liệu
-            setLoading(false); // Kết thúc quá trình tải lại
+            setBudgets(budgetData);
 
             Alert.alert('Thành công', 'Ngân sách đã được xóa');
         } catch (error) {
@@ -102,51 +99,27 @@ export default function BudgetScreen() {
         setBudgetToDelete(null);
     };
 
-    // Function to handle update of budget
-    const handleUpdateBudget = async (updatedBudgetData) => {
-        try {
-            // Giả sử có một phương thức updateBudget
-            // await updateBudget(updatedBudgetData);
-
-            // Sau khi cập nhật thành công, gọi lại API để tải lại danh sách
-            setLoading(true);
-            const budgetData = await fetchAllBudgets(userId);
-            setBudgets(budgetData); // Cập nhật lại dữ liệu
-            setLoading(false);
-
-            Alert.alert('Cập nhật thành công', 'Ngân sách đã được cập nhật');
-            // Chuyển hướng về màn hình danh sách và truyền refresh = true để tải lại dữ liệu
-            navigation.navigate('BudgetList', { refresh: true });
-        } catch (error) {
-            console.error('Error updating budget:', error);
-            Alert.alert('Lỗi', 'Không thể cập nhật ngân sách');
-        }
-    };
-
     if (loading) {
-        return <Text>Đang tải...</Text>;
+        return <Text style={tw`text-center mt-10 text-lg`}>Đang tải...</Text>;
     }
 
     return (
         <SafeAreaView style={tw`flex-1 bg-gray-100`}>
-            {/* Thanh trạng thái với nền trắng */}
             <View style={{ height: StatusBar.currentHeight || 0, backgroundColor: 'white' }} />
 
-            {/* Thanh hiển thị tên trang */}
             <View style={tw`bg-purple-600 py-3 px-4 flex-row items-center justify-between`}>
                 <Text style={tw`text-white text-lg font-bold`}>Danh sách ngân sách</Text>
-                {/* Nút thêm mới với icon dấu cộng */}
                 <TouchableOpacity
-                    style={tw`bg-white rounded-full p-2`} // Nền trắng và bo tròn
+                    style={tw`bg-white rounded-full p-2`}
                     onPress={() => navigation.navigate('BudgetAdd')}
                 >
-                    <Ionicons name="add" size={24} color="black" /> {/* Dấu cộng màu đen */}
+                    <Ionicons name="add" size={24} color="black" />
                 </TouchableOpacity>
             </View>
 
             <ScrollView style={tw`flex-1 px-4`}>
                 {budgets.map((budget, index) => {
-                    const key = budget.id ? `budget-${budget.id}` : `budget-${index}`;
+                    const key = budget._id || `budget-${index}`;
                     return (
                         <TouchableOpacity onPress={() => navigation.navigate('BudgetEdit', { budget })} key={key}>
                             <View style={tw`bg-white rounded-lg p-4 my-2 shadow-md`}>
@@ -155,7 +128,9 @@ export default function BudgetScreen() {
                                         source={{ uri: budget.categoryId?.image }}
                                         style={tw`w-12 h-12 rounded-full mb-2`}
                                     />
-                                    <Text style={tw`text-lg font-bold flex-1 ml-3`}>{budget.categoryId?.name || 'Không có tên'}</Text>
+                                    <Text style={tw`text-lg font-bold flex-1 ml-3`}>
+                                        {budget.categoryId?.name || 'Không có tên'}
+                                    </Text>
                                     <TouchableOpacity onPress={() => openDeleteModal(budget)}>
                                         <Text style={tw`text-red-500 text-sm font-bold`}>Xóa</Text>
                                     </TouchableOpacity>
@@ -163,7 +138,6 @@ export default function BudgetScreen() {
                                 <Text style={tw`text-sm mt-2`}>
                                     Ngân sách: {budget.amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', '')} đ
                                 </Text>
-
                             </View>
                         </TouchableOpacity>
                     );

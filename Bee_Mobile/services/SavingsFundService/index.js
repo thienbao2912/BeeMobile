@@ -1,4 +1,4 @@
-const API_URL = 'http://10.0.2.2:4000/api'; // Đảm bảo đúng port của backend
+const API_URL = 'http://192.168.1.15:4000/api'; // Đảm bảo đúng port của backend
 
 import * as SecureStore from 'expo-secure-store';
 
@@ -65,7 +65,6 @@ export const addSavingsFund = async (fundData) => {
     const data = await response.json();
     return data; // Trả về quỹ mới được tạo
   } catch (error) {
-    console.error('Error in addSavingsFund:', error);
     throw error; // Ném lỗi để frontend xử lý
   }
 };
@@ -151,7 +150,7 @@ export const addTransaction = async (fundId, transactionData) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error in addTransaction:', error);
+    // console.error('Error in addTransaction:', error);
     throw error;
   }
 };
@@ -251,7 +250,7 @@ export const acceptInvite = async (code) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error accepting invite:', error);
+    // console.error('Error accepting invite:', error);
     throw error;
   }
 };

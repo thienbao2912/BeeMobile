@@ -14,6 +14,7 @@ import registerNNPushToken from 'native-notify';
               <AuthStack />
           </NavigationContainer>
           <FlashMessage position="top" />
+        
           </>
         );
 }

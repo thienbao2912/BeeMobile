@@ -6,6 +6,7 @@ import FundMembers from "./FundMembers";
 import FundTransactions from "./FundTransactions";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { deleteSavingsFund } from "../../services/SavingsFundService";
+import { showMessage } from 'react-native-flash-message';
 export default function SavingFundDetail({ route, navigation }) {
   const { fundId } = route.params;
   const [fundDetail, setFundDetail] = useState(null);
@@ -17,7 +18,7 @@ export default function SavingFundDetail({ route, navigation }) {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friendEmail, setFriendEmail] = useState("");
   const [deleting, setDeleting] = useState(null);
-
+  const [isOwner, setIsOwner] = useState(false)
   const handleDelete = async (fundId) => {
     Alert.alert(
       "Xác nhận xóa",
@@ -34,12 +35,17 @@ export default function SavingFundDetail({ route, navigation }) {
               setDeleting(fundId);
               await deleteSavingsFund(fundId);
               navigation.navigate('SavingFundList', { refresh: true });
+              showMessage({
+                message: "Xóa thành công!",
+                type: "success",
+                icon: "success",
+              });
             } catch (error) {
               Alert.alert(
                 "Không có quyền",
                 "Bạn không có quyền xóa quỹ tiết kiệm này.",
                 [{ text: "Đóng" }]
-            );
+              );
             } finally {
               setDeleting(null);
             }
@@ -49,19 +55,22 @@ export default function SavingFundDetail({ route, navigation }) {
       { cancelable: false }
     );
   };
-   const handleEdit = () => {
-      navigation.navigate('SavingFundEdit', { fundId: fundDetail._id });
+  const handleEdit = () => {
+    navigation.navigate('SavingFundEdit', { fundId: fundDetail._id });
   };
 
   const loadFundDetail = async () => {
     try {
       setLoading(true);
       const data = await fetchSavingFundById(fundId);
-      console.log(data);
+      setIsOwner(data.isOwner)
       setFundDetail(data?.data || {});
     } catch (error) {
       console.error("Error loading fund detail", error);
-      // Alert.alert("Error", "There was an issue loading fund details. Please try again later.");
+      showMessage({
+        message: "Lỗi hiển thị chi tiết quỹ tiết kiệm",
+        type: "danger",
+      });
     } finally {
       setLoading(false);
     }
@@ -78,18 +87,36 @@ export default function SavingFundDetail({ route, navigation }) {
     const numericAmount = parseFloat(amount.replace(/,/g, ''));
     try {
       const transactionData = {
-amount: numericAmount,
+        amount: numericAmount,
         note,
       };
       setSending(true);
       await addTransaction(fundId, transactionData);
-      Alert.alert("Nạp tiền thành công");
+
+      showMessage({
+        message: "Nạp tiền thành công",
+        type: "success",
+        icon: "success",
+        floating: true,
+      });
       setShowModal(false);
       setAmount("");
       setNote("");
       loadFundDetail();
     } catch (error) {
-      console.error("Error adding transaction", error);
+      let errorMessage = 'Có lỗi xảy ra. Vui lòng thử lại!';
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      showMessage({
+        message: errorMessage,
+        type: "danger",
+        icon: "danger",
+        floating: true,
+
+      });
     } finally {
       setSending(false);
     }
@@ -115,24 +142,53 @@ amount: numericAmount,
     outputRange: [
       `hsl(${Math.min(fundDetail?.status || 0, 100) * 1.5}, 100%, ${Math.max(50 - (fundDetail?.status || 0) * 0.1, 20)}%)`,
       `hsl(${Math.min(fundDetail?.status || 0, 100) * 1.5}, 100%, ${Math.max(50 - (fundDetail?.status || 0) * 0.1, 20)}%)`,
-    ], 
+    ],
   });
 
   const handleSendInvite = async () => {
     if (!friendEmail) {
-      return Alert.alert("Nhập email để mời bạn!");
+      showMessage({
+        message: "Nhập email để mời bạn",
+        type: "danger",
+        icon: "danger",
+        floating: true,
+      });
+      return;
     }
     if (!/\S+@\S+\.\S+/.test(friendEmail)) {
-      return Alert.alert("Nhập đúng định dạng email!");
+      showMessage({
+        message: "Nhập email đúng định dạng",
+        type: "danger",
+        icon: "danger",
+        floating: true,
+      });
+      return
     }
     setSending(true);
     try {
       await sendInvitation(fundId, friendEmail);
-      Alert.alert("Gửi email thành công");
+      showMessage({
+        message: "Gửi email thành công",
+        type: "success",
+        icon: "success",
+        floating: true,
+      });
       setShowInviteModal(false);
       setFriendEmail("");
     } catch (error) {
-      console.error("Error sending invitation", error);
+      let errorMessage = 'Có lỗi xảy ra. Vui lòng thử lại!';
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      showMessage({
+        message: errorMessage,
+        type: "danger",
+        icon: "danger",
+        floating: true,
+
+      });
     } finally {
       setSending(false);
     }
@@ -176,20 +232,19 @@ amount: numericAmount,
             </Text>
           </View>
           <Text style={tw`text-sm text-gray-400 font-medium flex-1`}>
-{fundDetail?.status != null ? `${fundDetail.status}%` : "No Status"}
-          </Text>
-          <View style={tw`w-full h-2 bg-gray-100 mt-2`}>
-          <Text style={tw`text-sm text-gray-400 font-medium flex-1`}>
             {fundDetail?.status != null ? `${fundDetail.status}%` : "No Status"}
           </Text>
+          <View style={tw`w-full h-2 bg-gray-100 mt-2 rounded-full overflow-hidden`}>
+
             <Animated.View
               style={{
-                width: progressWidth,
+                width: `${Math.min(fundDetail?.status || 0, 100)}%`, // Giới hạn tối đa 100%
                 height: '100%',
                 backgroundColor: progressColor,
               }}
             />
           </View>
+
           <View style={tw`pt-4`}>
             <View style={tw`flex-row items-center mb-2`}>
               <Text style={tw`text-sm text-gray-500 font-medium flex-1`}>
@@ -250,7 +305,7 @@ amount: numericAmount,
                 Nạp Tiền
               </Text>
               <TextInput
-style={tw`border border-gray-300 p-3 rounded-lg text-lg text-gray-800 mb-4`}
+                style={tw`border border-gray-300 p-3 rounded-lg text-lg text-gray-800 mb-4`}
                 placeholder="Số tiền"
                 keyboardType="numeric"
                 value={amount}
@@ -319,7 +374,7 @@ style={tw`border border-gray-300 p-3 rounded-lg text-lg text-gray-800 mb-4`}
                 <TouchableOpacity
                   onPress={handleSendInvite}
                   disabled={sending}
-style={tw`flex-1 bg-indigo-600 py-2 rounded-full ml-2 ${sending ? "opacity-50" : ""
+                  style={tw`flex-1 bg-indigo-600 py-2 rounded-full ml-2 ${sending ? "opacity-50" : ""
                     }`}
                 >
                   <Text style={tw`text-white text-center text-lg font-semibold`}>
@@ -331,16 +386,20 @@ style={tw`flex-1 bg-indigo-600 py-2 rounded-full ml-2 ${sending ? "opacity-50" :
           </View>
         </Modal>
         <View style={tw`absolute top-3 right-3 flex-row`}>
-          <TouchableOpacity style={tw`p-2 bg-white rounded-full shadow-md`}
-            onPress={handleEdit}
+          {isOwner && (
+            <TouchableOpacity style={tw`p-2 bg-white rounded-full shadow-md`}
+              onPress={handleEdit}
             >
               <Ionicons name="pencil" size={20} color="#A57EF4" />
             </TouchableOpacity>
-          <TouchableOpacity style={tw`p-2 bg-white rounded-full shadow-md ml-3`}
-            onPress={() => handleDelete(fundDetail._id)}
-          >
-            <Ionicons name="trash-outline" size={25} color="#fc8181" />
-          </TouchableOpacity>
+          )}
+          {isOwner && (
+            <TouchableOpacity style={tw`p-2 bg-white rounded-full shadow-md ml-3`}
+              onPress={() => handleDelete(fundDetail._id)}
+            >
+              <Ionicons name="trash-outline" size={25} color="#fc8181" />
+            </TouchableOpacity>
+          )}.vn
         </View>
         <FundMembers fundId={fundId} />
         <FundTransactions fundId={fundId} />
