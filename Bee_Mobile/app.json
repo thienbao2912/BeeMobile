@@ -26,6 +26,12 @@
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ff7b4a1a-3651-47e0-9836-cfeae8b50bc9"
+      }
+    },
+    "owner": "phamthehien"
   }
 }
