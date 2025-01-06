@@ -6,7 +6,7 @@ import FlashMessage from "react-native-flash-message";
 import registerNNPushToken from 'native-notify';
 
  function App() {
-  registerNNPushToken(25582, 'DowBN7qkm455dOdSTMH4w0');
+  registerNNPushToken(26022, 'NO8lgdRwBet3so1AIuM3oj');
   
         return (
           <>
