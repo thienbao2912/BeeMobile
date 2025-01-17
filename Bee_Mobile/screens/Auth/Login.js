@@ -41,7 +41,7 @@ function Login({ navigation }) {
             });
         }
     };
-
+    
     const handleFocus = () => {
         clearErrors();
     };

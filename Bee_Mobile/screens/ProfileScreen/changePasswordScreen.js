@@ -238,7 +238,7 @@ function ChangePassword() {
 
         <TouchableOpacity
           style={tw`mt-4 w-full bg-blue-600 py-3 rounded-lg`}
-          onPress={() => navigation.navigate("")}
+          onPress={() => navigation.navigate("Login")}
         >
           <Text style={tw`text-white text-center font-semibold`}>
             Quên mật khẩu?
